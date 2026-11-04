@@ -5,7 +5,7 @@
   --line: #e6ebe7;
   --surface: #fff;
   --canvas: #f7f9f6;
-  --serif: Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-google-sans), Arial, Helvetica, sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -13,10 +13,7 @@
 body {
   margin: 0;
   color: var(--ink);
-  font:
-    14px/1.5 Arial,
-    Helvetica,
-    sans-serif;
+  font: 14px/1.5 var(--font-sans);
   background: var(--canvas);
 }
 button,
@@ -97,7 +94,7 @@ button:hover:not(:disabled) {
   background: #1c7058;
   border-radius: 11px;
   color: white;
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 27px;
   margin-right: 10px;
 }
@@ -124,7 +121,7 @@ button:hover:not(:disabled) {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 19px;
 }
 .workspace strong,
@@ -198,7 +195,7 @@ button:hover:not(:disabled) {
   font-size: 36px;
 }
 .open-source-card strong {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 19px;
   font-weight: 400;
   line-height: 1.25;
@@ -311,7 +308,7 @@ main {
   margin-bottom: 10px;
 }
 h1 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 34px;
   font-weight: 400;
   letter-spacing: -1px;
@@ -394,7 +391,7 @@ p {
   border-radius: 50%;
 }
 .welcome-card h2 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 38px;
   line-height: 1.12;
@@ -442,7 +439,7 @@ p {
   transform: rotate(-5deg);
 }
 .mini-logo {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: bold;
   font-size: 20px;
   color: #557b4f;
@@ -455,7 +452,7 @@ p {
   color: #6d8d60;
 }
 .mini-banner h3 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 25px;
   font-weight: 400;
   line-height: 1.1;
@@ -728,7 +725,7 @@ h2 {
   margin: 28px 0 17px;
 }
 .count-pill {
-  font-family: Arial;
+  font-family: var(--font-sans);
   font-size: 9px;
   color: #86917e;
   background: #e9eee5;
@@ -756,7 +753,7 @@ h2 {
   color: #68785d;
   display: grid;
   place-items: center;
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 20px;
   border-radius: 9px;
   border: 1px solid #dde2d5;
@@ -1084,7 +1081,7 @@ textarea {
   color: #a7b09b;
 }
 .fake-navigation b {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 17px;
 }
 .fake-navigation span {
@@ -1099,7 +1096,7 @@ textarea {
   color: #c0c6b7;
 }
 .fake-content h2 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 32px;
   line-height: 1.2;
@@ -1132,7 +1129,7 @@ textarea {
   line-height: 1;
 }
 .banner-preview h3 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 400;
   line-height: 1.2;
@@ -1304,7 +1301,7 @@ td small {
   color: #9bac8c;
 }
 .empty-state h3 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 24px;
   color: #6c805d;
@@ -1415,7 +1412,7 @@ td small {
   letter-spacing: 1px;
 }
 .pricing h3 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 24px;
   margin: 0 0 7px;
@@ -1634,7 +1631,7 @@ td small {
   margin-bottom: 20px;
 }
 .modal h2 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 27px;
   font-weight: 400;
 }
@@ -1700,7 +1697,7 @@ td small {
   border-bottom: 1px solid #e6e5d8;
 }
 .demo-site > nav > b {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-size: 25px;
 }
 .demo-site main {
@@ -1731,7 +1728,7 @@ td small {
   max-width: 700px;
 }
 .demo-status h2 {
-  font-family: var(--serif);
+  font-family: var(--font-sans);
   font-weight: 400;
   font-size: 25px;
   margin-bottom: 12px;
