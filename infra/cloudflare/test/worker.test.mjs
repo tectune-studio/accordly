@@ -134,3 +134,43 @@ test('queue consumer uses deterministic conditional keys and retries failed writ
   await worker.queue({ messages: [message] }, e);
   assert.equal(retries, 1);
 });
+
+test('edge accepts versioned events by config hash and rejects unknown fields', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const c = JSON.parse(
+    await readFile(
+      new URL('../../../packages/schema/examples/banner-config.json', import.meta.url),
+    ),
+  );
+  const event = JSON.parse(
+    await readFile(
+      new URL('../../../packages/schema/examples/consent-event.json', import.meta.url),
+    ),
+  );
+  const e = env();
+  e.CONFIGS.get = async (key) =>
+    key.endsWith('/current.json') || key.endsWith('/' + c.configHash + '.json')
+      ? {
+          text: async () =>
+            JSON.stringify({
+              ...c,
+              domainVerified: true,
+              allowedOrigins: ['https://client.example'],
+            }),
+        }
+      : null;
+  const send = (payload) =>
+    worker.fetch(
+      new Request('https://delivery.example/receipts/' + c.projectId, {
+        method: 'POST',
+        headers: { Origin: 'https://client.example' },
+        body: JSON.stringify(payload),
+      }),
+      e,
+    );
+  assert.equal((await send(event)).status, 202);
+  assert.equal(e.sent[0].eventId, event.eventId);
+  assert.ok(e.sent[0].receivedAt);
+  assert.equal((await send({ ...event, fullUrl: 'https://private.example/path' })).status, 400);
+  assert.equal(e.sent.length, 1);
+});

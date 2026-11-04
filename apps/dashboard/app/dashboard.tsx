@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import TeamSettings from './team-settings';
 import type { ConsentConfig, Receipt } from '@consentkit/core';
 type Release = { id: string; createdAt: string; config: ConsentConfig };
 type Project = {
@@ -12,7 +13,9 @@ type Project = {
   activeRelease: string | null;
 };
 type State = {
-  organization: { name: string; plan: string };
+  mode?: 'live';
+  viewer?: { userId: string; role: string };
+  organization: { id?: string; name: string; plan: string };
   projects: Project[];
   receipts: (Receipt & { receivedAt: string })[];
   audit: { id: string; action: string; at: string; actor: string; projectId: string }[];
@@ -232,16 +235,16 @@ export default function Dashboard() {
   const customized = state?.receipts.filter((r) => r.action === 'customize').length || 0;
   const active = state?.projects.filter((p) => p.activeRelease).length || 0;
   const install = project
-    ? `<script type="module">\n  import { createConsentManager } from '${typeof window !== 'undefined' ? window.location.origin : ''}/api/sdk/0.1.0/consent.js';\n  const config = await fetch('${typeof window !== 'undefined' ? window.location.origin : ''}/api/public/${project.id}/current').then(r => r.json());\n  const cmp = createConsentManager({ config }).initialize();\n  // Gate optional integrations with cmp.gate() before loading them.\n  if (!cmp.hasDecision()) cmp.showPreferences();\n</script>`
+    ? `<script type="module">\n  import { createConsentManager } from '${typeof window !== 'undefined' ? window.location.origin : ''}/api/sdk/0.2.0/consent.js';\n  const config = await fetch('${typeof window !== 'undefined' ? window.location.origin : ''}/api/public/${project.id}/current').then(r => r.json());\n  const cmp = createConsentManager({ config }).initialize();\n  // Gate optional integrations with cmp.gate() before loading them.\n  if (!cmp.hasDecision()) cmp.showPreferences();\n</script>`
     : '';
   return (
-    <div className="app-shell">
+    <div className="min-h-screen">
       <aside className="sidebar" inert={modal}>
-        <a className="brand" href="/" aria-label="ConsentKit home">
+        <a className="brand" href="/" aria-label="Accordly home">
           <span className="brand-mark">
             c<span>k</span>
           </span>
-          consentkit<span className="brand-dot">.</span>
+          accordly<span className="brand-dot">.</span>
         </a>
         <div className="workspace">
           <span className="workspace-avatar">A</span>
@@ -299,8 +302,8 @@ export default function Dashboard() {
           <div className="user">
             <span className="avatar">JD</span>
             <div>
-              <strong>Demo owner</strong>
-              <small>Local workspace</small>
+              <strong>{state?.mode === 'live' ? state.viewer?.role : 'Demo owner'}</strong>
+              <small>{state?.mode === 'live' ? 'Organization workspace' : 'Local workspace'}</small>
             </div>
             <span className="online-dot" />
           </div>
@@ -312,7 +315,9 @@ export default function Dashboard() {
             Workspace <span>/</span> <strong>{view}</strong>
           </div>
           <div className="topbar-actions">
-            <span className="demo-label">DEMO WORKSPACE</span>
+            <span className="demo-label">
+              {state?.mode === 'live' ? 'ACCORDLY' : 'DEMO WORKSPACE'}
+            </span>
             <button
               className="mobile-utility"
               aria-label="Billing"
@@ -353,7 +358,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="page-heading">
+              <div className="page-heading flex items-center justify-between gap-5">
                 <div>
                   <div className="eyebrow">YOUR PRIVACY WORKSPACE</div>
                   <h1>{view === 'Overview' ? 'Good things start with trust.' : view}</h1>
@@ -469,7 +474,7 @@ export default function Dashboard() {
                       },
                     ].map((s) => (
                       <div className="stat-card" key={s.label}>
-                        <div className="stat-label">
+                        <div className="stat-label flex items-center justify-between">
                           {s.label}
                           <Icon name={s.icon} size={17} />
                         </div>
@@ -480,7 +485,7 @@ export default function Dashboard() {
                   </div>
                   <div className="overview-grid">
                     <section className="card activity-card">
-                      <div className="section-heading">
+                      <div className="section-heading flex items-center justify-between gap-3">
                         <div>
                           <h2>Consent breakdown</h2>
                           <p>Real choices from your published experiences</p>
@@ -551,7 +556,7 @@ export default function Dashboard() {
                       </div>
                     </section>
                     <section className="card checklist">
-                      <div className="section-heading">
+                      <div className="section-heading flex items-center justify-between gap-3">
                         <div>
                           <h2>Make yourself at home</h2>
                           <p>Your launch checklist</p>
@@ -609,7 +614,7 @@ export default function Dashboard() {
                       ))}
                     </section>
                   </div>
-                  <div className="section-heading projects-heading">
+                  <div className="section-heading flex items-center justify-between gap-3 projects-heading">
                     <div>
                       <h2>
                         Your projects <span className="count-pill">{state.projects.length}</span>
@@ -674,7 +679,7 @@ export default function Dashboard() {
               )}
               {view === 'Banner studio' && project && draft && (
                 <>
-                  <div className="studio-toolbar">
+                  <div className="studio-toolbar flex items-center justify-between">
                     <label>
                       Project{' '}
                       <select
@@ -736,7 +741,7 @@ export default function Dashboard() {
                           onChange={(e) => edit('privacyUrl', e.target.value)}
                         />
                       </label>
-                      <div className="form-row">
+                      <div className="form-row flex gap-4">
                         <label>
                           Accent color
                           <div className="color-field">
@@ -865,7 +870,7 @@ export default function Dashboard() {
                     </section>
                   </div>
                   <section className="card releases">
-                    <div className="section-heading">
+                    <div className="section-heading flex items-center justify-between gap-3">
                       <div>
                         <h2>Version history</h2>
                         <p>Every published configuration stays immutable.</p>
@@ -1100,7 +1105,10 @@ export default function Dashboard() {
                   </section>
                 </>
               )}
-              {view === 'Billing' && (
+              {view === 'Billing' && state.mode === 'live' && (
+                <p>Live billing is not configured yet.</p>
+              )}
+              {view === 'Billing' && state.mode !== 'live' && (
                 <>
                   <div className="notice">
                     <span>◇</span>
@@ -1198,6 +1206,7 @@ export default function Dashboard() {
               )}
               {view === 'Settings' && (
                 <div className="settings-grid">
+                  {state.mode === 'live' && <TeamSettings />}
                   <section className="card settings">
                     <h2>Workspace</h2>
                     <label>
@@ -1206,22 +1215,40 @@ export default function Dashboard() {
                     </label>
                     <label>
                       Workspace identifier
-                      <input readOnly value="org_demo" />
+                      <input readOnly value={state.organization.id || 'org_demo'} />
                     </label>
                     <label>
                       Current mode
-                      <input readOnly value="Local demo · single organization" />
+                      <input
+                        readOnly
+                        value={
+                          state.mode === 'live'
+                            ? 'Clerk organization · PostgreSQL'
+                            : 'Local demo · single organization'
+                        }
+                      />
                     </label>
                     <p className="footnote">
-                      Workspace identity is fixed in demo mode. Clerk authentication, invitations,
-                      and role management are future production work.
+                      {state.mode === 'live'
+                        ? 'Access is checked against current organization membership.'
+                        : 'Demo mode uses a fixed workspace identity.'}
                     </p>
                   </section>
                   <section className="card settings">
                     <h2>Environment status</h2>
                     {[
-                      ['Authentication', 'Demo owner — no live login'],
-                      ['Storage', 'Local JSON · single-process only'],
+                      [
+                        'Authentication',
+                        state.mode === 'live'
+                          ? 'Clerk membership verification'
+                          : 'Demo owner — no live login',
+                      ],
+                      [
+                        'Storage',
+                        state.mode === 'live'
+                          ? 'PostgreSQL with tenant RLS'
+                          : 'Local JSON · single-process only',
+                      ],
                       ['Payments', 'Simulated · no Stripe requests'],
                       ['Configuration delivery', 'Local immutable releases'],
                       ['Public deployment', 'Blocked until live adapters exist'],
@@ -1317,7 +1344,7 @@ export default function Dashboard() {
                 Use a hostname without https://. Domain ownership verification is required before a
                 future live deployment.
               </p>
-              <div className="modal-actions">
+              <div className="modal-actions flex justify-end gap-2.5">
                 <button type="button" className="button" onClick={() => setModal(false)}>
                   Cancel
                 </button>
@@ -1348,7 +1375,7 @@ function ProjectCard({
 }) {
   return (
     <article className="card project-card">
-      <div className="project-top">
+      <div className="project-top flex items-center justify-between">
         <div className="site-icon">{p.name.charAt(0).toUpperCase()}</div>
         <Badge tone={p.activeRelease ? 'green' : 'orange'}>
           {p.activeRelease ? 'Published' : 'Draft'}
@@ -1356,7 +1383,7 @@ function ProjectCard({
       </div>
       <h3>{p.name}</h3>
       <p>⌁ {p.domain}</p>
-      <div className="project-meta">
+      <div className="project-meta flex justify-between">
         <span>
           <strong>{receipts}</strong> decisions
         </span>

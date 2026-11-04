@@ -1,3 +1,4 @@
+import type { BannerConfig, ConsentEvent } from '@consentkit/schema';
 export interface Purpose {
   id: string;
   name: string;
@@ -13,6 +14,8 @@ export interface ConsentConfig {
   expirationDays: number;
   purposes: Purpose[];
   brandColor?: string;
+  respectGpc?: boolean;
+  gpcCategories?: string[];
 }
 export interface Receipt {
   receiptId: string;
@@ -26,6 +29,7 @@ export interface Receipt {
 }
 export interface Manager {
   initialize(): Manager;
+  getState(): 'unknown' | 'decided';
   getConsent(): Record<string, boolean>;
   getReceipt(): Receipt | null;
   hasDecision(): boolean;
@@ -36,7 +40,7 @@ export interface Manager {
   acceptAll(): Receipt;
   rejectAll(): Receipt;
   withdraw(): Receipt;
-  showPreferences(): void;
+  showPreferences(): Promise<void>;
   close(): void;
   destroy(): void;
 }
@@ -58,7 +62,10 @@ export function applyGoogleConsent(
   gtag: (...args: unknown[]) => void,
 ): void;
 export function createConsentManager(options: {
-  config: ConsentConfig;
+  config: ConsentConfig | BannerConfig;
+  onEvent?: (event: ConsentEvent) => unknown;
+  country?: string;
+  language?: string;
   storage?: Pick<Storage, 'getItem' | 'setItem'>;
   onDecision?: (receipt: Receipt) => unknown;
   googleConsent?: (...args: unknown[]) => void;

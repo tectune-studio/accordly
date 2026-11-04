@@ -10,12 +10,13 @@
     "dev": "npm run dev -w @consentkit/dashboard",
     "build": "npm run build -w @consentkit/dashboard",
     "start": "npm run start -w @consentkit/dashboard",
-    "test": "node --test packages/consent-core/test/*.test.mjs apps/dashboard/test/*.test.mjs infra/cloudflare/test/*.test.mjs",
+    "test": "node --test packages/consent-core/test/*.test.mjs apps/dashboard/test/*.test.mjs infra/cloudflare/test/*.test.mjs packages/schema/test/*.test.mjs",
     "typecheck": "tsc --noEmit -p apps/dashboard && tsc --noEmit -p packages/consent-react && tsc --noEmit -p infra/cloudflare",
     "check": "npm run test && npm run typecheck && npm run build",
     "test:e2e": "playwright test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "schema:generate": "npm run generate -w @consentkit/schema"
   },
   "engines": {
     "node": ">=24"

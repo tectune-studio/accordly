@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "projectId": "proj_example",
+  "configHash": "e4bf53d6517ce25844e0d59fe9718008f0c5712f3d4a62a500c2b38a4e4e3b0e",
+  "categories": [
+    {
+      "id": "necessary",
+      "services": []
+    },
+    {
+      "id": "analytics",
+      "services": []
+    },
+    {
+      "id": "marketing",
+      "services": []
+    },
+    {
+      "id": "functional",
+      "services": []
+    }
+  ],
+  "scriptRules": [],
+  "googleSignals": {
+    "ad_storage": "marketing",
+    "analytics_storage": "analytics",
+    "ad_user_data": "marketing",
+    "ad_personalization": "marketing"
+  },
+  "regionRules": [
+    {
+      "countries": ["*"],
+      "mode": "opt-in",
+      "respectGpc": true,
+      "gpcCategories": ["marketing"]
+    }
+  ],
+  "texts": {
+    "en": {
+      "title": "Your privacy, your choice",
+      "description": "Choose optional processing.",
+      "acceptAll": "Accept all",
+      "rejectAll": "Reject all",
+      "save": "Save preferences",
+      "preferences": "Privacy preferences",
+      "privacyUrl": "https://example.com/privacy"
+    }
+  },
+  "defaultLanguage": "en",
+  "theme": {
+    "background": "#ffffff",
+    "foreground": "#172b29",
+    "accent": "#166b58",
+    "fontFamily": "system-ui",
+    "position": "bottom"
+  },
+  "behavior": {
+    "cookieLifetimeDays": 180,
+    "repromptOnConfigChange": true,
+    "consentWall": false
+  }
+}

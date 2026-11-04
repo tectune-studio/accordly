@@ -1,5 +1,7 @@
+import { adaptConfig, uuidv7, subjectId } from './v1.js';
+import { bindElements } from './blocking.js';
 /** Standalone core: no network, dependencies, telemetry, or hosted account required. */
-export const SDK_VERSION = '0.1.0';
+export const SDK_VERSION = '0.2.0';
 const optional = (config) => config.purposes.filter((p) => !p.required);
 export function validateConfig(config) {
   if (
@@ -48,7 +50,7 @@ export function isValidStoredReceipt(config, receipt, now = Date.now()) {
   return Boolean(
     receipt &&
     receipt.projectId === config.projectId &&
-    receipt.configurationVersion === config.version &&
+    (receipt.configurationVersion === config.version || config.repromptOnConfigChange === false) &&
     typeof receipt.receiptId === 'string' &&
     ['accept', 'reject', 'customize', 'withdraw'].includes(receipt.action) &&
     Number.isFinite(timestamp) &&
@@ -61,7 +63,20 @@ export function isValidStoredReceipt(config, receipt, now = Date.now()) {
     ),
   );
 }
-export function applyGoogleConsent(choices, gtag) {
+export function applyGoogleConsent(choices, gtag, mapping) {
+  if (mapping) {
+    gtag(
+      'consent',
+      'update',
+      Object.fromEntries(
+        Object.entries(mapping).map(([signal, category]) => [
+          signal,
+          choices[category] ? 'granted' : 'denied',
+        ]),
+      ),
+    );
+    return;
+  }
   gtag('consent', 'update', {
     analytics_storage: choices.analytics ? 'granted' : 'denied',
     ad_storage: choices.marketing ? 'granted' : 'denied',
@@ -75,22 +90,38 @@ export function defaultGoogleConsent(gtag) {
     ad_storage: 'denied',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
+    wait_for_update: 500,
   });
 }
 export function createConsentManager({
   config,
   storage,
   onDecision,
+  onEvent,
+  country,
+  language = 'en',
   googleConsent,
   onError = () => {},
 }) {
+  const contract = config.schemaVersion ? config : null;
+  if (contract) config = adaptConfig(contract, country, language);
   validateConfig(config);
+  let subject;
+
   let receipt = null;
-  let current = choicesFor(config);
-  let root = null;
-  let returnFocus = null;
+  let current = choicesFor(config, config.mode === 'opt-out');
+  let ui = null,
+    uiGeneration = 0;
   const subscribers = new Set();
   const key = `consentkit:${config.projectId}`;
+  const cookieKey = encodeURIComponent(key);
+  const gpc = () => Boolean(globalThis.navigator?.globalPrivacyControl);
+  const enforceGpc = () => {
+    if (gpc() && config.respectGpc)
+      for (const id of config.gpcCategories || ['marketing'])
+        if (id !== 'necessary') current[id] = false;
+  };
+  let unblock = () => {};
   const safeError = (e) => {
     try {
       onError(e);
@@ -98,6 +129,12 @@ export function createConsentManager({
   };
   const local = () => storage ?? globalThis.localStorage;
   const emit = () => {
+    if (typeof window !== 'undefined')
+      window.dispatchEvent(
+        new CustomEvent('consentkit:change', {
+          detail: { choices: { ...current }, state: receipt ? 'decided' : 'unknown' },
+        }),
+      );
     for (const cb of subscribers) {
       try {
         cb({ ...current });
@@ -108,9 +145,36 @@ export function createConsentManager({
   };
   const manager = {
     initialize() {
+      if (!googleConsent && typeof window !== 'undefined') {
+        window.dataLayer ??= [];
+        googleConsent =
+          window.gtag ??
+          function () {
+            window.dataLayer.push(arguments);
+          };
+      }
       if (googleConsent) defaultGoogleConsent(googleConsent);
+      subject ??= subjectId(
+        storage ??
+          (() => {
+            try {
+              return globalThis.localStorage;
+            } catch {
+              return null;
+            }
+          })(),
+      );
       try {
-        const saved = JSON.parse(local().getItem(key) || 'null');
+        const cookie =
+          typeof document === 'undefined'
+            ? null
+            : document.cookie
+                .split('; ')
+                .find((v) => v.startsWith(cookieKey + '='))
+                ?.slice(cookieKey.length + 1);
+        const saved = JSON.parse(
+          cookie ? decodeURIComponent(cookie) : local().getItem(key) || 'null',
+        );
         if (isValidStoredReceipt(config, saved)) {
           receipt = saved;
           current = normalizeChoices(config, saved.choices);
@@ -118,10 +182,16 @@ export function createConsentManager({
       } catch (e) {
         safeError(e);
       }
-      if (googleConsent) applyGoogleConsent(current, googleConsent);
+      enforceGpc();
+      if (googleConsent) applyGoogleConsent(current, googleConsent, contract?.googleSignals);
       emit();
+      if (typeof document !== 'undefined') {
+        unblock();
+        unblock = bindElements(manager, document, config.scriptRules);
+      }
       return manager;
     },
+    getState: () => (receipt ? 'decided' : 'unknown'),
     getConsent: () => ({ ...current }),
     getReceipt: () => (receipt ? structuredClone(receipt) : null),
     hasDecision: () => receipt !== null,
@@ -152,6 +222,7 @@ export function createConsentManager({
       };
     },
     setConsent(choices, action = 'customize') {
+      const hadDecision = receipt !== null;
       if (!['accept', 'reject', 'customize', 'withdraw'].includes(action))
         throw new Error('Invalid action');
       current =
@@ -160,6 +231,7 @@ export function createConsentManager({
           : ['reject', 'withdraw'].includes(action)
             ? choicesFor(config)
             : normalizeChoices(config, choices);
+      enforceGpc();
       receipt = {
         receiptId: globalThis.crypto.randomUUID(),
         projectId: config.projectId,
@@ -175,8 +247,47 @@ export function createConsentManager({
       } catch (e) {
         safeError(e);
       }
-      if (googleConsent) applyGoogleConsent(current, googleConsent);
+      enforceGpc();
+      if (typeof document !== 'undefined')
+        try {
+          document.cookie =
+            cookieKey +
+            '=' +
+            encodeURIComponent(JSON.stringify(receipt)) +
+            '; Path=/; Max-Age=' +
+            config.expirationDays * 86400 +
+            '; Secure; SameSite=Lax';
+        } catch (e) {
+          safeError(e);
+        }
+      if (googleConsent) applyGoogleConsent(current, googleConsent, contract?.googleSignals);
       emit();
+      if (onEvent && contract) {
+        const event = {
+          schemaVersion: 1,
+          eventId: uuidv7(),
+          projectId: config.projectId,
+          subjectId: subject,
+          configHash: contract.configHash,
+          action: {
+            accept: 'accept_all',
+            reject: 'reject_all',
+            customize: hadDecision ? 'update' : 'custom',
+            withdraw: 'withdraw',
+          }[action],
+          choices: Object.fromEntries(Object.entries(current).filter(([id]) => id !== 'necessary')),
+          language,
+          gpcDetected: gpc(),
+          clientTime: receipt.clientTimestamp,
+          ...(country ? { country } : {}),
+        };
+        if (gpc() && config.respectGpc && event.action === 'accept_all') event.action = 'custom';
+        try {
+          Promise.resolve(onEvent(event)).catch(safeError);
+        } catch (e) {
+          safeError(e);
+        }
+      }
       if (onDecision) {
         try {
           Promise.resolve(onDecision(structuredClone(receipt))).catch(safeError);
@@ -190,103 +301,20 @@ export function createConsentManager({
     acceptAll: () => manager.setConsent({}, 'accept'),
     rejectAll: () => manager.setConsent({}, 'reject'),
     withdraw: () => manager.setConsent({}, 'withdraw'),
-    showPreferences() {
-      if (typeof document === 'undefined') throw new Error('UI requires a browser');
-      if (root) {
-        root.shadowRoot.querySelector('button')?.focus();
-        return;
-      }
-      returnFocus = document.activeElement;
-      root = document.createElement('div');
-      if (/^#[a-f0-9]{6}$/i.test(config.brandColor || ''))
-        root.style.setProperty('--ck-accent', config.brandColor);
-      const shadow = root.attachShadow({ mode: 'open' });
-      const style = document.createElement('style');
-      style.textContent = `:host{all:initial;position:fixed;inset:0;z-index:2147483647;background:#10182866;display:flex;align-items:flex-end;justify-content:center;padding:20px;box-sizing:border-box;font:14px/1.5 system-ui;color:#172b29}*{box-sizing:border-box}.panel{background:white;border:1px solid #d5dfdc;border-radius:18px;padding:28px;width:min(540px,100%);max-height:85vh;overflow:auto;box-shadow:0 20px 80px #102c2933}h2{font-size:23px;margin:0 0 8px}p{color:#536b65}label{display:flex;gap:12px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #edf1ef}input{margin-top:5px;accent-color:var(--ck-accent,#16836c);width:18px;height:18px}small{display:block;color:#536b65}footer{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}button{background:#eff6f3;color:#172b29;border:1px solid #cadbd4;border-radius:8px;padding:11px 15px;cursor:pointer;font:600 13px system-ui}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #157c66;outline-offset:3px}button.primary{background:var(--ck-accent,#166b58);color:white;border-color:var(--ck-accent,#166b58)}a{color:#166b58}`;
-      shadow.append(style);
-      const panel = document.createElement('section');
-      panel.className = 'panel';
-      panel.role = 'dialog';
-      panel.setAttribute('aria-modal', 'true');
-      panel.setAttribute('aria-labelledby', 'ck-title');
-      const heading = document.createElement('h2');
-      heading.id = 'ck-title';
-      heading.textContent = config.title || 'Your privacy, your choice';
-      const description = document.createElement('p');
-      description.textContent =
-        config.description ||
-        'Choose which optional services may run on this website. You can change your mind at any time.';
-      panel.append(heading, description);
-      const selected = { ...current };
-      for (const p of config.purposes) {
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        input.type = 'checkbox';
-        input.checked = selected[p.id];
-        input.disabled = p.required;
-        input.addEventListener('change', () => {
-          selected[p.id] = input.checked;
-        });
-        const text = document.createElement('span');
-        text.textContent = p.name + (p.required ? ' · always active' : '');
-        const detail = document.createElement('small');
-        detail.textContent = p.description;
-        text.append(detail);
-        label.append(input, text);
-        panel.append(label);
-      }
-      if (config.privacyUrl) {
-        try {
-          const url = new URL(config.privacyUrl);
-          if (['https:', 'http:'].includes(url.protocol)) {
-            const link = document.createElement('a');
-            link.href = url.href;
-            link.textContent = 'Privacy policy';
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            panel.append(link);
-          }
-        } catch {}
-      }
-      const footer = document.createElement('footer');
-      for (const [label, click] of [
-        ['Reject optional', manager.rejectAll],
-        ['Accept all', manager.acceptAll],
-        ['Save preferences', () => manager.setConsent(selected)],
-      ]) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.textContent = label;
-        if (label === 'Save preferences') button.className = 'primary';
-        button.onclick = click;
-        footer.append(button);
-      }
-      panel.append(footer);
-      shadow.append(panel);
-      shadow.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && manager.hasDecision()) manager.close();
-        if (e.key !== 'Tab') return;
-        const focusable = [...shadow.querySelectorAll('button,input:not(:disabled),a')];
-        const first = focusable[0],
-          last = focusable.at(-1);
-        if (e.shiftKey && shadow.activeElement === first) {
-          last.focus();
-          e.preventDefault();
-        } else if (!e.shiftKey && shadow.activeElement === last) {
-          first.focus();
-          e.preventDefault();
-        }
-      });
-      document.body.append(root);
-      shadow.querySelector('input:not(:disabled),button')?.focus();
+    async showPreferences() {
+      const generation = uiGeneration;
+      const { createUI } = await import('./ui.js');
+      if (generation !== uiGeneration) return;
+      ui ??= createUI(config, manager);
+      ui.show();
     },
     close() {
-      root?.remove();
-      root = null;
-      returnFocus?.focus?.();
+      uiGeneration++;
+      ui?.close();
     },
     destroy() {
       manager.close();
+      unblock();
       subscribers.clear();
     },
   };

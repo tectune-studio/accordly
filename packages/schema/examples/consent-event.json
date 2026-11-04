@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "eventId": "019a5160-0000-7000-8000-000000000001",
+  "projectId": "proj_example",
+  "subjectId": "random_first_party_subject",
+  "configHash": "e4bf53d6517ce25844e0d59fe9718008f0c5712f3d4a62a500c2b38a4e4e3b0e",
+  "action": "custom",
+  "choices": {
+    "analytics": true,
+    "marketing": false
+  },
+  "country": "DE",
+  "language": "de",
+  "gpcDetected": false,
+  "clientTime": "2026-11-04T10:00:00Z"
+}

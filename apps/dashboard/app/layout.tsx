@@ -1,3 +1,4 @@
+import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Google_Sans } from 'next/font/google';
@@ -10,7 +11,7 @@ const googleSans = Google_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'ConsentKit — A little respect. A lot of trust.',
+  title: 'Accordly — A little respect. A lot of trust.',
   description:
     'Developer-first consent management. Configure, publish, and understand your consent experience.',
 };
@@ -18,7 +19,22 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={googleSans.variable}>
-      <body className={googleSans.className}>{children}</body>
+      <body
+        className={`${googleSans.className} bg-canvas font-sans text-sm leading-normal text-ink`}
+      >
+        {process.env.CONSENTKIT_MODE === 'demo' ? (
+          children
+        ) : (
+          <ClerkProvider
+            signInUrl="/sign-in"
+            signUpUrl="/sign-up"
+            signInFallbackRedirectUrl="/"
+            signUpFallbackRedirectUrl="/"
+          >
+            {children}
+          </ClerkProvider>
+        )}
+      </body>
     </html>
   );
 }

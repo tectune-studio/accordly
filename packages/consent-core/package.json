@@ -1,6 +1,6 @@
 {
   "name": "@consentkit/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "license": "Apache-2.0",
   "description": "Standalone, accessible consent management with explicit integration gates",
@@ -13,7 +13,11 @@
   "files": [
     "src",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "legacy"
   ],
-  "sideEffects": false
+  "sideEffects": false,
+  "dependencies": {
+    "@consentkit/schema": "1.0.0"
+  }
 }

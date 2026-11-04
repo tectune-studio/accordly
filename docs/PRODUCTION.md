@@ -21,12 +21,12 @@ Provision R2 `consentkit-configs` and `consentkit-receipts`, Queues `consentkit-
 Expected objects:
 
 ```text
-sdk/0.1.0/consent.js
+sdk/0.2.0/consent.js
 config/PROJECT_ID/RELEASE_ID.json
 config/PROJECT_ID/current.json
 ```
 
-Upload the SDK from `packages/consent-core/src/index.js`. Release objects contain the consent config plus delivery metadata:
+Upload `src/index.js` as `sdk/0.2.0/consent.js`, and upload `loader.js`, `ui.js`, `v1.js`, and `blocking.js` from the same source directory alongside it. Preserve `legacy/0.1.0/consent.js` at its original URL. Release objects contain the consent config plus delivery metadata:
 
 ```json
 {

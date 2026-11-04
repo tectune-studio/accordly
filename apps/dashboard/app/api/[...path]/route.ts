@@ -1,3 +1,5 @@
+import { liveGet, livePost } from '../../../lib/server/live-api';
+import { toBannerConfig, validateEvent } from '../../../lib/contracts.mjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -7,12 +9,6 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const json = (data: unknown, status = 200, headers: Record<string, string> = {}) =>
   NextResponse.json(data, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
-function demoOnly() {
-  if (process.env.CONSENTKIT_MODE !== 'demo')
-    throw new Error(
-      'Live mode is not implemented. Configure production authentication and storage before enabling this server.',
-    );
-}
 async function body(req: NextRequest) {
   const reader = req.body?.getReader();
   if (!reader) throw new Error('Request body required');
@@ -46,11 +42,23 @@ function project(state: any, id: string) {
 }
 export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
-    demoOnly();
     const { path } = await params;
-    if (path.join('/') === 'sdk/0.1.0/consent.js') {
+    if (
+      path[0] === 'sdk' &&
+      ['0.1.0', '0.2.0'].includes(path[1]) &&
+      ['consent.js', 'ui.js', 'blocking.js', 'v1.js', 'loader.js'].includes(path[2]) &&
+      path.length === 3
+    ) {
       const source = await readFile(
-        join(process.cwd(), '../../packages/consent-core/src/index.js'),
+        join(
+          process.cwd(),
+          '../../packages/consent-core/src',
+          path[1] === '0.1.0' && path[2] === 'consent.js'
+            ? '../legacy/0.1.0/consent.js'
+            : path[2] === 'consent.js'
+              ? 'index.js'
+              : path[2],
+        ),
         'utf8',
       );
       return new NextResponse(source, {
@@ -61,6 +69,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
         },
       });
     }
+    if (process.env.CONSENTKIT_MODE !== 'demo') return liveGet(req, path);
     const state = await readStore();
     if (path[0] === 'public' && path[1]) {
       const p = project(state, path[1]);
@@ -75,6 +84,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
           path[2] && path[2] !== 'current'
             ? 'public,max-age=31536000,immutable'
             : 'public,max-age=30',
+      });
+    }
+    if (path[0] === 'v1' && path[1] === 'config' && path[2]) {
+      const p = project(state, path[2]);
+      const release = p.releases.find((r: any) => r.id === p.activeRelease);
+      if (!release) return json({ error: 'Publish a configuration first' }, 404);
+      return json(await toBannerConfig(release.config), 200, {
+        'Access-Control-Allow-Origin': '*',
+        'Cache-Control': 'public,max-age=30',
       });
     }
     if (path[0] === 'export') {
@@ -97,10 +115,38 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
 }
 export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
-    demoOnly();
-    sameOrigin(req);
     const { path } = await params;
+    if (process.env.CONSENTKIT_MODE !== 'demo') return livePost(req, path);
+    sameOrigin(req);
     const input = await body(req);
+    if (path.join('/') === 'v1/events') {
+      const result = await mutateStore(async (state: any) => {
+        const p = project(state, input.projectId);
+        let config = null;
+        for (const release of p.releases) {
+          const c = await toBannerConfig(release.config);
+          if (c.configHash === input.configHash) {
+            config = c;
+            break;
+          }
+        }
+        if (!config) throw new Error('Unknown configuration hash');
+        const event = validateEvent(input, config);
+        state.consentEvents ??= [];
+        const existing = state.consentEvents.find(
+          (e: any) => e.projectId === event.projectId && e.eventId === event.eventId,
+        );
+        if (existing) {
+          const { receivedAt, ...previous } = existing;
+          if (JSON.stringify(previous) !== JSON.stringify(event))
+            throw new Error('Event ID conflict');
+          return { duplicate: true };
+        }
+        state.consentEvents.push({ ...event, receivedAt: new Date().toISOString() });
+        return { eventId: event.eventId };
+      });
+      return json(result, 202);
+    }
     if (path[0] === 'projects' && !path[1]) {
       const fields = parseProject(input);
       const result = await mutateStore((state: any) => {

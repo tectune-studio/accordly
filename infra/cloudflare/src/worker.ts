@@ -1,3 +1,4 @@
+import { validateEvent } from '../../../apps/dashboard/lib/contracts.mjs';
 import { validateReceipt } from '../../../apps/dashboard/lib/domain.mjs';
 interface ObjectBody {
   text(): Promise<string>;
@@ -14,7 +15,7 @@ interface Env {
   INGEST_LIMITER: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
 interface Message {
-  body: { projectId: string; receiptId: string; receivedAt: string };
+  body: { projectId: string; receiptId?: string; eventId?: string; receivedAt: string };
   ack(): void;
   retry(): void;
 }
@@ -77,8 +78,14 @@ export default {
         await cache.put(cacheKey, result.clone());
         return result;
       }
-      if (request.method === 'GET' && segments.join('/') === 'sdk/0.1.0/consent.js') {
-        const obj = await env.CONFIGS.get('sdk/0.1.0/consent.js');
+      if (
+        request.method === 'GET' &&
+        segments[0] === 'sdk' &&
+        ['0.1.0', '0.2.0'].includes(segments[1]) &&
+        ['consent.js', 'ui.js', 'blocking.js', 'v1.js', 'loader.js'].includes(segments[2]) &&
+        segments.length === 3
+      ) {
+        const obj = await env.CONFIGS.get(segments.join('/'));
         if (!obj) return response({ error: 'SDK not uploaded' }, 404);
         return new Response(await obj.text(), {
           headers: {
@@ -108,9 +115,16 @@ export default {
         if (!limit.success)
           return response({ error: 'Rate limited' }, 429, { ...cors, 'Retry-After': '60' });
         const input = await readBody(request);
-        const release = await getConfig(env, segments[1], String(input.configurationVersion));
+        const release = await getConfig(
+          env,
+          segments[1],
+          String(input.schemaVersion === 1 ? input.configHash : input.configurationVersion),
+        );
         if (!release) return response({ error: 'Unknown release' }, 400, cors);
-        const receipt = validateReceipt(input, release);
+        const receipt =
+          input.schemaVersion === 1
+            ? validateEvent(input, release)
+            : validateReceipt(input, release);
         await env.CONSENT_QUEUE.send({ ...receipt, receivedAt: new Date().toISOString() });
         return response({ accepted: true }, 202, cors);
       }
@@ -124,10 +138,14 @@ export default {
       try {
         const r = message.body;
         // Deterministic object key makes redelivery idempotent. R2 bucket lifecycle handles retention.
-        await env.RECEIPTS.put(`receipts/${r.projectId}/${r.receiptId}.json`, JSON.stringify(r), {
-          onlyIf: { etagDoesNotMatch: '*' },
-          httpMetadata: { contentType: 'application/json' },
-        });
+        await env.RECEIPTS.put(
+          `receipts/${r.projectId}/${r.eventId || r.receiptId}.json`,
+          JSON.stringify(r),
+          {
+            onlyIf: { etagDoesNotMatch: '*' },
+            httpMetadata: { contentType: 'application/json' },
+          },
+        );
         message.ack();
       } catch {
         message.retry();

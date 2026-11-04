@@ -10,6 +10,6 @@
     "react": "^19.0.0"
   },
   "dependencies": {
-    "@consentkit/core": "0.1.0"
+    "@consentkit/core": "0.2.0"
   }
 }
