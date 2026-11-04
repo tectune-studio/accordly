@@ -20,7 +20,46 @@ DO $$ BEGIN
 END $$;
 SELECT set_config('accordly.role','admin',true);
 INSERT INTO accordly.releases(id,organization_id,project_id,config,banner,config_hash) VALUES('test_release','org_test_a','test_a','{}','{}',repeat('a',64));
+DO $$ BEGIN
+ BEGIN PERFORM accordly.activate_release('test_a','test_release'); RAISE EXCEPTION 'Unverified publish permitted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+ IF accordly.public_release('test_a') IS NOT NULL THEN RAISE EXCEPTION 'Unverified delivery permitted'; END IF;
+END $$;
+INSERT INTO accordly.domain_challenges(id,organization_id,project_id,domain,method,token_hash,expires_at,verified_at) VALUES(gen_random_uuid(),'org_test_a','test_a','a.example','dns',repeat('b',64),now()+interval '1 day',now());
 SELECT accordly.activate_release('test_a','test_release');
+INSERT INTO accordly.publish_jobs(id,organization_id,project_id,release_id,domain,verified_until) VALUES('11111111-1111-4111-8111-111111111111','org_test_a','test_a','test_release','a.example',now()+interval '30 days');
+DO $$ BEGIN
+ IF accordly.public_release('test_a') IS NOT NULL THEN RAISE EXCEPTION 'Staged release is public'; END IF;
+ BEGIN INSERT INTO accordly.publish_jobs(id,organization_id,project_id,release_id,domain,verified_until) VALUES(gen_random_uuid(),'org_test_a','test_a','test_release','a.example',now()+interval '30 days'); RAISE EXCEPTION 'Parallel pending publication permitted'; EXCEPTION WHEN unique_violation THEN NULL; END;
+ BEGIN INSERT INTO accordly.publish_jobs(id,organization_id,project_id,release_id,domain,verified_until) VALUES(gen_random_uuid(),'org_test_b','test_a','test_release','a.example',now()+interval '30 days'); RAISE EXCEPTION 'Cross-tenant publication permitted'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+SELECT set_config('accordly.role','viewer',true);
+UPDATE accordly.publish_jobs SET phase='completed' WHERE project_id='test_a';
+DO $$ BEGIN
+ IF (SELECT phase FROM accordly.publish_jobs WHERE project_id='test_a')<>'validated' THEN RAISE EXCEPTION 'Viewer changed publish state'; END IF;
+END $$;
+SELECT set_config('accordly.role','editor',true);
+DO $$ BEGIN
+ BEGIN INSERT INTO accordly.publish_jobs(id,organization_id,project_id,release_id,domain,verified_until) VALUES(gen_random_uuid(),'org_test_a','test_a','test_release','a.example',now()+interval '30 days'); RAISE EXCEPTION 'Editor published'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
+END $$;
+SELECT set_config('accordly.org_id','org_test_b',true);
+DO $$ BEGIN
+ IF EXISTS(SELECT FROM accordly.publish_jobs) THEN RAISE EXCEPTION 'Publish jobs leak across tenants'; END IF;
+END $$;
+SELECT set_config('accordly.org_id','org_test_a',true),set_config('accordly.role','admin',true);
+UPDATE accordly.publish_jobs SET generation=DEFAULT,phase='completed',completed_at=now() WHERE project_id='test_a';
+DO $$ BEGIN
+ IF accordly.public_release('test_a') IS NULL THEN RAISE EXCEPTION 'Completed release unavailable'; END IF;
+END $$;
+UPDATE accordly.domain_challenges SET verified_at=now()-interval '31 days' WHERE project_id='test_a';
+DO $$ BEGIN
+ IF accordly.public_release('test_a') IS NOT NULL THEN RAISE EXCEPTION 'Expired proof permits delivery'; END IF;
+END $$;
+UPDATE accordly.domain_challenges SET verified_at=now() WHERE project_id='test_a';
+UPDATE accordly.projects SET domain='changed.example' WHERE id='test_a';
+UPDATE accordly.projects SET domain='a.example' WHERE id='test_a';
+DO $$ BEGIN
+ IF accordly.domain_is_verified('test_a') THEN RAISE EXCEPTION 'Changing a domain resurrects old proof'; END IF;
+END $$;
 INSERT INTO accordly.deletion_jobs(organization_id,project_id) VALUES('org_test_a','test_a');
 RESET ROLE;
 SET LOCAL ROLE accordly_maintenance;

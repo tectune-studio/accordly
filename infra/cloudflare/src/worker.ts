@@ -1,14 +1,17 @@
 import { validateEvent } from '../../../apps/dashboard/lib/contracts.mjs';
 import { validateReceipt } from '../../../apps/dashboard/lib/domain.mjs';
+import { activatePointer, authorized, publishObject } from './publish.mjs';
 interface ObjectBody {
   text(): Promise<string>;
   httpEtag: string;
+  etag: string;
 }
 interface Bucket {
   get(key: string): Promise<ObjectBody | null>;
   put(key: string, value: string, options?: unknown): Promise<unknown>;
 }
 interface Env {
+  PUBLISH_SECRET?: string;
   CONFIGS: Bucket;
   RECEIPTS: Bucket;
   CONSENT_QUEUE: { send(value: unknown): Promise<void> };
@@ -29,7 +32,7 @@ const response = (data: unknown, status = 200, headers: Record<string, string> =
       ...headers,
     },
   });
-async function readBody(request: Request) {
+async function readBody(request: Request, maximum = 16384) {
   const reader = request.body?.getReader();
   if (!reader) throw new Error('Missing body');
   let length = 0;
@@ -38,7 +41,7 @@ async function readBody(request: Request) {
     const { done, value } = await reader.read();
     if (done) break;
     length += value.length;
-    if (length > 16384) {
+    if (length > maximum) {
       await reader.cancel();
       throw new Error('Body too large');
     }
@@ -52,30 +55,63 @@ async function readBody(request: Request) {
   }
   return JSON.parse(new TextDecoder().decode(bytes));
 }
-async function getConfig(env: Env, project: string, version: string) {
+async function getConfig(env: Env, project: string, version: string, banner = false): Promise<any> {
   if (!/^[a-zA-Z0-9_-]{1,80}$/.test(project) || !/^[a-zA-Z0-9_-]{1,80}$/.test(version)) return null;
   const obj = await env.CONFIGS.get(`config/${project}/${version}.json`);
-  return obj ? JSON.parse(await obj.text()) : null;
+  if (!obj) return null;
+  const value = JSON.parse(await obj.text());
+  if (version === 'current' && value.generation) {
+    if (Date.parse(value.verifiedUntil) <= Date.now()) return null;
+    const artifact = await getConfig(env, project, banner ? value.configHash : value.releaseId);
+    return artifact
+      ? { ...artifact, allowedOrigins: value.allowedOrigins, domainVerified: true }
+      : null;
+  }
+  return value;
 }
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const segments = url.pathname.split('/').filter(Boolean);
     try {
+      if (segments[0] === 'internal') {
+        if (!(await authorized(request, env.PUBLISH_SECRET)))
+          return response({ error: 'Unauthorized' }, 401);
+        if (request.method !== 'POST' || segments[1] !== 'publish' || segments.length !== 3)
+          return response({ error: 'Not found' }, 404);
+        const body = await readBody(request, 131072);
+        if (segments[2] === 'objects') return response(await publishObject(env.CONFIGS, body));
+        if (segments[2] === 'current') return response(await activatePointer(env.CONFIGS, body));
+        return response({ error: 'Not found' }, 404);
+      }
+      if (
+        request.method === 'GET' &&
+        segments[0] === 'v1' &&
+        segments[1] === 'config' &&
+        segments.length === 3
+      ) {
+        const config = await getConfig(env, segments[2], 'current', true);
+        return config
+          ? response(config, 200, {
+              'Access-Control-Allow-Origin': '*',
+              'Cache-Control': 'no-store',
+            })
+          : response({ error: 'Not found' }, 404);
+      }
       if (request.method === 'GET' && segments[0] === 'config' && segments.length === 3) {
         const [, project, version] = segments;
-        const cacheKey = new Request(url.toString());
+        // Canonical URLs prevent query variants escaping targeted invalidation.
+        const cacheKey = new Request(url.origin + url.pathname);
         const cache = (caches as CacheStorage & { default: Cache }).default;
-        const hit = await cache.match(cacheKey);
+        const hit = version === 'current' ? undefined : await cache.match(cacheKey);
         if (hit) return hit;
         const config = await getConfig(env, project, version);
         if (!config) return response({ error: 'Not found' }, 404);
         const result = response(config, 200, {
           'Access-Control-Allow-Origin': '*',
-          'Cache-Control':
-            version === 'current' ? 'public,max-age=30' : 'public,max-age=31536000,immutable',
+          'Cache-Control': version === 'current' ? 'no-store' : 'public,max-age=31536000,immutable',
         });
-        await cache.put(cacheKey, result.clone());
+        if (version !== 'current') await cache.put(cacheKey, result.clone());
         return result;
       }
       if (

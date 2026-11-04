@@ -1,10 +1,12 @@
 import 'server-only';
+import { domainStatus, domainOperation } from './domain-api';
+import { publishRelease } from './publish-service';
 import { NextRequest, NextResponse } from 'next/server';
 import { clerkClient } from '@clerk/nextjs/server';
 import { requireOrganization, HttpError, type Actor } from './auth';
 import { withDatabase, withTenant, recordAudit } from './database';
 import { makeConfig, parseConfig, parseProject, validateReceipt } from '../domain.mjs';
-import { toBannerConfig, validateEvent } from '../contracts.mjs';
+import { validateEvent } from '../contracts.mjs';
 const json = (value: unknown, status = 200, headers: Record<string, string> = {}) =>
   NextResponse.json(value, { status, headers: { 'Cache-Control': 'no-store', ...headers } });
 async function input(req: NextRequest) {
@@ -76,6 +78,21 @@ export async function liveGet(req: NextRequest, path: string[]) {
       });
     }
     const actor = await requireOrganization('read');
+    if (path[0] === 'projects' && path[1] && path[2] === 'publishes' && path.length === 3)
+      return json(
+        await withTenant(
+          actor,
+          async (db) =>
+            (
+              await db.query(
+                'select id,release_id,phase,attempts,last_error,created_at,completed_at from accordly.publish_jobs where project_id=$1 order by generation desc limit 20',
+                [path[1]],
+              )
+            ).rows,
+        ),
+      );
+    if (path[0] === 'projects' && path[1] && path[2] === 'domain' && path.length === 3)
+      return json(await domainStatus(actor, path[1]));
     if (path.join('/') === 'organization/members') {
       const clerk = await clerkClient();
       const members = await clerk.organizations.getOrganizationMembershipList({
@@ -251,13 +268,22 @@ export async function livePost(req: NextRequest, path: string[]) {
     }
     originCheck(req);
     const operation =
-      path[0] === 'organization' || path[2] === 'delete'
+      path[0] === 'organization' || path[2] === 'delete' || path[2] === 'domain'
         ? 'manage'
         : path[2] === 'publish' || path[2] === 'rollback'
           ? 'publish'
           : 'edit';
     const actor = await requireOrganization(operation);
     const payload = await input(req);
+    if (
+      path[0] === 'projects' &&
+      path[1] &&
+      ['publish', 'rollback'].includes(path[2]) &&
+      path.length === 3
+    )
+      return json(await publishRelease(actor, path[1], payload, path[2] === 'rollback'));
+    if (path[0] === 'projects' && path[1] && path[2] === 'domain' && path.length === 4)
+      return json(await domainOperation(actor, path[1], path[3], payload));
     if (path[0] === 'organization') return await organizationOperation(actor, path, payload);
     if (path[0] === 'billing') throw new HttpError(501, 'Live billing is not configured.');
     return json(
@@ -297,38 +323,6 @@ export async function livePost(req: NextRequest, path: string[]) {
           ]);
           await recordAudit(db, actor, 'Draft saved', project.id);
           return { saved: true };
-        }
-        if (path[2] === 'publish') {
-          const id = 'rel_' + crypto.randomUUID().replaceAll('-', '').slice(0, 16);
-          const config = { ...parseConfig(project.draft, project.id), version: id };
-          const banner = await toBannerConfig(config);
-          await db.query(
-            'insert into accordly.releases(id,organization_id,project_id,config,banner,config_hash) values($1,$2,$3,$4::jsonb,$5::jsonb,$6)',
-            [
-              id,
-              actor.orgId,
-              project.id,
-              JSON.stringify(config),
-              JSON.stringify(banner),
-              banner.configHash,
-            ],
-          );
-          await db.query('select accordly.activate_release($1,$2)', [project.id, id]);
-          await recordAudit(db, actor, 'Configuration published', project.id);
-          return { id, config };
-        }
-        if (path[2] === 'rollback') {
-          const release = await db.query(
-            'select id from accordly.releases where id=$1 and project_id=$2',
-            [payload.releaseId, project.id],
-          );
-          if (!release.rowCount) throw new HttpError(404, 'Release not found');
-          await db.query('select accordly.activate_release($1,$2)', [
-            project.id,
-            payload.releaseId,
-          ]);
-          await recordAudit(db, actor, 'Release restored', project.id);
-          return { restored: true };
         }
         if (path[2] === 'delete') {
           await db.query(

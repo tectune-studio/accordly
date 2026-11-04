@@ -59,12 +59,12 @@ These files exist, but their presence does not mean the hosted capability is rea
 
 - [x] Implement authenticated PostgreSQL storage, tenant policies, migration scripts, and restricted runtime roles; remote Supabase rollout is pending.
 - [ ] Deploy and integrate the Cloudflare delivery/ingestion Worker with R2, Queues, rate limiting, and receipt archives.
-- [ ] Connect authenticated publishing to immutable R2 releases, current pointers, and CDN invalidation.
+- [x] Durable authenticated publishing: validated release → immutable R2 write/read verification → conditional current pointer → cache invalidation → audit, with resumable PostgreSQL jobs and rollback. Cloudflare beta deployment is pending; see [publishing operations](docs/PUBLISHING.md).
 
 ### Yet to be implemented
 
 - [x] Implement Clerk authentication, per-request organization membership verification, invitations, and role-based permissions; live login verification is pending.
-- [ ] DNS/HTTP domain ownership verification.
+- [x] DNS TXT and HTTPS-file domain challenges, expiry, SSRF protection, and database publishing guards. Live migration rollout is pending.
 - [ ] Stripe Checkout, Customer Portal, verified webhooks, and subscription entitlements.
 - [ ] Managed-load metering, plan quotas, usage alerts, and overage billing.
 - [ ] Production receipt delivery/reconciliation, retention, deletion, and backup/restore workflows.

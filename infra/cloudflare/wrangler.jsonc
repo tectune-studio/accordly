@@ -1,11 +1,14 @@
 {
   "$schema": "https://unpkg.com/wrangler/config-schema.json",
   "name": "consentkit-delivery",
+  "account_id": "5a59ad39af377a19e369652ac5ac6770",
+  "workers_dev": false,
+  "routes": [{ "pattern": "consent.tectune.in", "custom_domain": true }],
   "main": "src/worker.ts",
   "compatibility_date": "2026-11-01",
   "r2_buckets": [
-    { "binding": "CONFIGS", "bucket_name": "consentkit-configs" },
-    { "binding": "RECEIPTS", "bucket_name": "consentkit-receipts" },
+    { "binding": "CONFIGS", "bucket_name": "consent-config-tectune" },
+    { "binding": "RECEIPTS", "bucket_name": "consent-receipts-tectune" },
   ],
   "queues": {
     "producers": [{ "binding": "CONSENT_QUEUE", "queue": "consentkit-decisions" }],

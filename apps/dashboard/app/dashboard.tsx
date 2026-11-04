@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import TeamSettings from './team-settings';
+import DomainSettings from './domain-settings';
+import PublishStatus from './publish-status';
 import type { ConsentConfig, Receipt } from '@consentkit/core';
 type Release = { id: string; createdAt: string; config: ConsentConfig };
 type Project = {
@@ -100,6 +102,19 @@ const date = (s: string) =>
   new Date(s).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 const human = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 async function request(path: string, data?: unknown) {
+  let retryKey: string | undefined;
+  if (data && /\/publish$|\/rollback$/.test(path)) {
+    const payload = data as Record<string, unknown>;
+    retryKey = 'accordly:publish:' + path + ':' + String(payload.releaseId || 'draft');
+    let requestId = crypto.randomUUID();
+    try {
+      requestId = (sessionStorage.getItem(retryKey) || requestId) as typeof requestId;
+      sessionStorage.setItem(retryKey, requestId);
+    } catch {
+      /* Storage may be disabled; the server can still resume a pending job. */
+    }
+    data = { ...payload, requestId };
+  }
   const response = await fetch(
     '/api/' + path,
     data === undefined
@@ -112,6 +127,11 @@ async function request(path: string, data?: unknown) {
   );
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || 'Request failed');
+  if (retryKey) {
+    try {
+      sessionStorage.removeItem(retryKey);
+    } catch {}
+  }
   return result;
 }
 function Badge({ children, tone = 'green' }: { children: ReactNode; tone?: string }) {
@@ -679,6 +699,21 @@ export default function Dashboard() {
               )}
               {view === 'Banner studio' && project && draft && (
                 <>
+                  {state.mode === 'live' && (
+                    <PublishStatus
+                      key={'publish-' + project.id}
+                      projectId={project.id}
+                      canManage={state.viewer?.role === 'admin'}
+                      onComplete={reload}
+                    />
+                  )}
+                  {state.mode === 'live' && (
+                    <DomainSettings
+                      key={project.id}
+                      projectId={project.id}
+                      canManage={state.viewer?.role === 'admin'}
+                    />
+                  )}
                   <div className="studio-toolbar flex items-center justify-between">
                     <label>
                       Project{' '}
