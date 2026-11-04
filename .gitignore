@@ -34,3 +34,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# workspace outputs
+**/node_modules/
+**/.next/
+**/*.tsbuildinfo
+.data/
+playwright-report/
+test-results/
+.wrangler/

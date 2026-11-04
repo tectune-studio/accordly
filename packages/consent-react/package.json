@@ -1,0 +1,15 @@
+{
+  "name": "@consentkit/react",
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@consentkit/core": "0.1.0"
+  }
+}
