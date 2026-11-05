@@ -1,134 +1,153 @@
 'use client';
-
+import { useState } from 'react';
 import { useDashboardContext } from '@/components/dashboard/dashboard-context';
 import { request } from '@/lib/dashboard/api';
+import { plans, findPlan } from '@/lib/billing/plans';
 
 export default function BillingPage() {
   const { state, busy, action } = useDashboardContext();
+  const [interval, setInterval] = useState<'monthly' | 'annual'>('monthly');
   if (!state) return null;
+  const live = state.mode === 'live';
+  const current = findPlan(state.organization.plan);
   return (
     <>
-      {state.mode === 'live' && (
-        <p className="text-muted-foreground text-[12px] my-1.5 mx-0">
-          Live billing is not configured yet.
+      <div className="rounded-xl border border-line bg-surface p-5 mb-6">
+        <h2 className="text-lg font-semibold">
+          Your plan: {current?.name || state.organization.plan}
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          Usage is measured in monthly unique visitors (MUV) who load your consent script. Page
+          navigation does not create another unique visitor.
         </p>
-      )}
-      {state.mode !== 'live' && (
-        <>
-          <div className="flex flex-col items-start  bg-(--accent-background) border border-line rounded-2.25 mb-6.25 text-(--brand-hover) [@media(max-width:720px)]:gap-2.5 py-[19px] px-5.5 [@media(max-width:720px)]:p-4">
-            <strong className="text-[12px] font-medium [@media(max-width:720px)]:text-[11px]">
-              Explore plans in demo mode.
-            </strong>
-            <p className="text-muted-foreground text-[11px] [@media(max-width:720px)]:text-[10px] my-1.5 mx-0">
-              Plan changes are simulated locally. There is no checkout, charge, or live
-              subscription.
-            </p>
-          </div>
-          <div className="grid grid-cols-4 gap-3.75 mt-8.75 items-stretch [@media(max-width:1200px)]:grid-cols-2 [@media(max-width:1200px)]:gap-[30px_18px] [@media(max-width:720px)]:gap-[35px_12px]">
-            {[
-              [
-                'free',
-                'Hosted Free',
-                '0',
-                'For your first consent experience.',
-                '1 production domain',
-                '10k managed loads',
-                'Hosted configuration',
-                'Core consent controls',
-              ],
-              [
-                'starter',
-                'Starter',
-                '19',
-                'For independent sites getting serious.',
-                '1 production domain',
-                '100k managed loads',
-                'Consent records & export',
-                'Monthly website scan',
-              ],
-              [
-                'growth',
-                'Growth',
-                '59',
-                'For growing brands and small teams.',
-                '5 production domains',
-                '500k managed loads',
-                'Advanced reports',
-                'Scheduled scans & teams',
-              ],
-              [
-                'business',
-                'Business',
-                '199',
-                'For teams building trust at scale.',
-                '20 production domains',
-                '2M managed loads',
-                'Experiments & approvals',
-                'API access & longer retention',
-              ],
-            ].map(([id, title, price, description, ...features]) => (
-              <article
-                className={
-                  id === 'growth'
-                    ? 'bg-surface border rounded-b-[10px] min-w-0 relative flex flex-col border-brand shadow-[0_3px_20px_var(--shadow-color)] py-6.25 px-5 [@media(max-width:720px)]:py-5 [@media(max-width:720px)]:px-[15px]'
-                    : 'bg-surface border border-line rounded-[10px] min-w-0 relative flex flex-col py-6.25 px-5 [@media(max-width:720px)]:py-5 [@media(max-width:720px)]:px-[15px]'
-                }
-                key={id}
-              >
-                {id === 'growth' && (
-                  <div className="absolute top-[-20px] left-[-1px] right-[-1px] bg-brand text-(--on-brand) text-center rounded-[7px_7px_0_0] text-[8px] tracking-[1px] p-1">
-                    ROOM TO GROW
-                  </div>
-                )}
-                <h3 className="font-sans font-normal text-[24px] mt-0 mb-1.75 [@media(max-width:720px)]:text-[23px] mx-0">
-                  {title}
-                </h3>
-                <p className="text-muted-foreground text-[10px] min-h-8.75 my-1.5 mx-0">
-                  {description}
+        <p className="text-sm text-muted-foreground mt-2">
+          {live
+            ? 'Paid subscriptions are not available yet. These plans preview our proposed offering.'
+            : 'Explore plans in demo mode. Plan changes are simulated locally; no payment is taken.'}
+        </p>
+      </div>
+      <div
+        className="flex flex-wrap items-center gap-3 mb-6"
+        role="group"
+        aria-label="Billing interval"
+      >
+        {(['monthly', 'annual'] as const).map((value) => (
+          <button
+            key={value}
+            aria-pressed={interval === value}
+            onClick={() => setInterval(value)}
+            className={`rounded-lg border px-4 py-2 ${interval === value ? 'bg-brand text-white border-brand' : 'border-line bg-surface'}`}
+          >
+            {value === 'monthly' ? 'Monthly' : 'Annual — 2 months free'}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+        {plans.map((plan) => {
+          const selected = current?.id === plan.id;
+          const quoted = plan.id === 'agency' || plan.id === 'enterprise';
+          const price = plan[interval];
+          return (
+            <article
+              key={plan.id}
+              className={`flex min-w-0 flex-col rounded-xl border bg-surface p-6 ${plan.id === 'pro' ? 'border-brand' : 'border-line'}`}
+            >
+              <h3 className="text-2xl font-semibold">{plan.name}</h3>
+              <p className="my-5 text-3xl font-semibold">
+                {plan.id === 'agency'
+                  ? 'From $199'
+                  : price === null
+                    ? 'Custom'
+                    : `$${price.toLocaleString('en-US')}`}
+                <span className="ml-1 text-sm font-normal text-muted-foreground">
+                  {plan.id === 'agency'
+                    ? '/month + per-project fees'
+                    : price === null
+                      ? ''
+                      : interval === 'annual' && price > 0
+                        ? '/year'
+                        : '/month'}
+                </span>
+              </p>
+              {interval === 'annual' && price !== null && price > 0 && plan.monthly !== null && (
+                <p className="text-sm text-muted-foreground mb-3">
+                  Billed annually. Save ${plan.monthly * 12 - price}/year. MUV allowance resets
+                  monthly.
                 </p>
-                <div className="text-[32px] tracking-[-1px] my-5 mx-0">
-                  ${price}
-                  <span className="text-[9px] text-muted-foreground tracking-[0] ml-1.25">
-                    / month
-                  </span>
-                </div>
-                <ul className="border-t border-line list-none flex-1 m-0 py-[15px] px-0">
-                  {features.map((f) => (
-                    <li
-                      className="flex gap-2 text-(--brand-hover) text-[10px] [@media(max-width:720px)]:text-[9px] my-3 mx-0"
-                      key={f}
-                    >
-                      ✓ <span className="text-muted-foreground">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <button
-                  disabled={busy || state.organization.plan === id}
-                  className={
-                    id === 'growth'
-                      ? 'inline-flex items-center justify-center gap-2.25 min-h-10 border rounded-1.75 bg-brand text-[9px]! font-semibold! whitespace-nowrap border-brand text-(--on-brand)! shadow-[0_2px_3px_var(--shadow-color)] [@media(max-width:720px)]:text-[8px]! enabled:hover:bg-(--brand-hover) enabled:hover:border-(--brand-hover) enabled:hover:filter-none! py-2.5 px-1.75 motion-reduce:transition-none!'
-                      : 'inline-flex items-center justify-center gap-2.25 min-h-10 border border-line rounded-1.75 bg-surface text-[9px]! font-semibold! whitespace-nowrap [@media(max-width:720px)]:text-[8px]! py-2.5 px-1.75 motion-reduce:transition-none!'
-                  }
-                  onClick={() =>
-                    action(
-                      () => request('billing', { plan: id }),
-                      'Demo plan changed. No payment was taken.',
-                    )
-                  }
-                >
-                  {state.organization.plan === id
-                    ? 'Current demo plan'
-                    : 'Try ' + title + ' in demo'}
-                </button>
-              </article>
-            ))}
-          </div>
-          <p className="text-muted-foreground mt-3.5 mb-1.5 text-[10px] leading-[1.8] mx-0">
-            Proposed product packaging. Limits and premium features are not implemented or enforced
-            in this demo. Open-source core remains free to self-host.
-          </p>
-        </>
-      )}
+              )}
+              <ul className="space-y-2 border-t border-line py-4 text-sm">
+                <li>
+                  {plan.domains === null
+                    ? plan.id === 'agency'
+                      ? 'Unlimited client projects'
+                      : 'Custom domain limits'
+                    : `${plan.domains} ${plan.domains === 1 ? 'domain' : 'domains'}${plan.id === 'business' ? ' + subdomains' : ''}`}
+                </li>
+                <li>
+                  {plan.muv === null
+                    ? 'Usage allowance agreed in your quote'
+                    : `${plan.muv.toLocaleString('en-US')} MUV`}
+                </li>
+                <li>{plan.retention}</li>
+              </ul>
+              <p className="text-xs font-semibold text-muted-foreground">
+                {plan.id === 'free'
+                  ? 'Adds to the open-source core'
+                  : quoted
+                    ? 'Proposed capabilities'
+                    : 'Adds to the preceding tier'}
+              </p>
+              <ul className="my-4 flex-1 space-y-2 text-sm">
+                {plan.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+              <button
+                className="rounded-lg border border-line px-4 py-2 disabled:opacity-60"
+                disabled={busy || selected || live || quoted}
+                onClick={() =>
+                  action(
+                    () => request('billing', { plan: plan.id, interval }),
+                    'Demo plan changed. No payment was taken.',
+                  )
+                }
+              >
+                {selected
+                  ? live
+                    ? 'Current plan'
+                    : 'Current demo plan'
+                  : quoted
+                    ? 'Custom quote required'
+                    : live
+                      ? 'Coming soon'
+                      : `Try ${plan.name} in demo`}
+              </button>
+            </article>
+          );
+        })}
+      </div>
+      <div className="mt-6 rounded-xl border border-line bg-surface p-5 text-sm space-y-3">
+        <p>
+          <strong>Paid-plan overages:</strong> proposed rate of approximately $4 per extra 10,000
+          MUV. Upgrade prompts are planned at 80% of your allowance. Paid-plan banner delivery
+          remains active above the allowance.
+        </p>
+        <p>
+          <strong>Cloud Free:</strong> 2,000 MUV per month, with no overage billing. The planned
+          hard cap suspends hosted delivery, publishing and record collection when reached. Account
+          access and billing remain available to upgrade. Already-cached scripts may continue
+          running on customer websites.
+        </p>
+        <p>
+          <strong>Availability:</strong> proposed packaging includes features still being built:
+          scheduled scans, A/B testing, analytics connectors, webhooks, universal consent,
+          white-label workflows, SSO, mobile SDKs and certified TCF support.
+        </p>
+        <p>
+          Usage metering, automatic upgrade prompts and overage charging are not active yet. The
+          open-source core remains free to self-host.
+        </p>
+      </div>
     </>
   );
 }

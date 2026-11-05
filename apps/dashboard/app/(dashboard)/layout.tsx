@@ -4,7 +4,7 @@ import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { DashboardFooter } from '@/components/dashboard/dashboard-footer';
 import BrandLogo from '@/components/brand-logo';
 import { auth } from '@clerk/nextjs/server';
-import { CreateOrganization, OrganizationSwitcher, UserButton } from '@clerk/nextjs';
+import { CreateOrganization, OrganizationSwitcher } from '@clerk/nextjs';
 export const dynamic = 'force-dynamic';
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = process.env.ACCORDLY_MODE === 'demo' ? null : await auth();
@@ -22,16 +22,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   return (
     <>
-      {session && (
-        <div>
-          <OrganizationSwitcher hidePersonal afterSelectOrganizationUrl="/" />
-          <UserButton />
-        </div>
-      )}
       <Dashboard
         key={session?.orgId ?? 'demo'}
-        sidebar={<DashboardSidebar />}
-        header={<DashboardHeader />}
+        sidebar={<DashboardSidebar live={!!session} />}
+        header={<DashboardHeader live={!!session} />}
         footer={<DashboardFooter />}
       >
         {children}

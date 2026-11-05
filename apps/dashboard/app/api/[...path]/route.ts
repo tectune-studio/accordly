@@ -214,7 +214,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ pat
       return json(result, 202);
     }
     if (path[0] === 'billing') {
-      if (!['free', 'starter', 'growth', 'business'].includes(input.plan))
+      if (!['free', 'starter', 'pro', 'business'].includes(input.plan))
         throw new Error('Unknown plan');
       await mutateStore((state: any) => {
         state.organization.plan = input.plan;

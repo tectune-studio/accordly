@@ -22,8 +22,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { LiveOrganizationMenu, LiveUserAccount } from './live-account';
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ live = false }: { live?: boolean }) {
   const { state, view, modal: inert } = useDashboardContext();
   const { state: sidebarState, isMobile, setOpenMobile } = useSidebar();
   const collapsed = !isMobile && sidebarState === 'collapsed';
@@ -72,26 +73,32 @@ export function DashboardSidebar() {
         >
           <BrandLogo collapsed={collapsed} />
         </Link>
-        <div
-          className="mt-8 flex w-full items-center gap-2.5 rounded-2.25 border border-line bg-sidebar p-2.75 text-left group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
-          title={state?.organization.name || 'Acme Studio'}
-        >
-          <span className="grid size-8 shrink-0 place-items-center rounded-xl border border-line bg-(--accent-background) font-sans text-[19px]">
-            A
-          </span>
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <strong className="block text-[12px]">
-              {state?.organization.name || 'Acme Studio'}
-            </strong>
-            <small className="block text-[10px] text-muted-foreground">Workspace</small>
+        {live ? (
+          <div className="mt-8 w-full min-w-0">
+            <LiveOrganizationMenu collapsed={collapsed} />
           </div>
-          <span
-            className="ml-auto text-[10px] leading-2 text-muted-foreground group-data-[collapsible=icon]:hidden"
-            aria-hidden="true"
+        ) : (
+          <div
+            className="mt-8 flex w-full items-center gap-2.5 rounded-2.25 border border-line bg-sidebar p-2.75 text-left group-data-[collapsible=icon]:size-10 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
+            title={state?.organization.name || 'Acme Studio'}
           >
-            ⌃<br />⌄
-          </span>
-        </div>
+            <span className="grid size-8 shrink-0 place-items-center rounded-xl border border-line bg-(--accent-background) font-sans text-[19px]">
+              A
+            </span>
+            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+              <strong className="block text-[12px]">
+                {state?.organization.name || 'Acme Studio'}
+              </strong>
+              <small className="block text-[10px] text-muted-foreground">Workspace</small>
+            </div>
+            <span
+              className="ml-auto text-[10px] leading-2 text-muted-foreground group-data-[collapsible=icon]:hidden"
+              aria-hidden="true"
+            >
+              ⌃<br />⌄
+            </span>
+          </div>
+        )}
       </SidebarHeader>
       <SidebarContent className="flex-[1_0_auto] gap-0 overflow-visible px-4.5 py-0 group-data-[collapsible=icon]:overflow-visible group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:pt-6">
         <nav className="block" id="workspace-navigation" aria-label="Workspace navigation">
@@ -126,20 +133,26 @@ export function DashboardSidebar() {
         </a>
         <div
           className="mt-[15px] flex items-center gap-2.5 border-t border-line px-2 py-4.75 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-0"
-          title={state?.mode === 'live' ? state.viewer?.role : 'Demo owner'}
+          title={live ? 'Your account' : 'Demo owner'}
         >
-          <span className="grid size-8.5 shrink-0 place-items-center rounded-full border-3 border-line bg-(--accent-background) text-[10px] font-semibold text-(--brand-hover) shadow-[0_0_0_1px_var(--line)]">
-            JD
-          </span>
-          <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <strong className="block text-[12px]">
-              {state?.mode === 'live' ? state.viewer?.role : 'Demo owner'}
-            </strong>
-            <small className="block text-[10px] text-muted-foreground">
-              {state?.mode === 'live' ? 'Organization workspace' : 'Local workspace'}
-            </small>
-          </div>
-          <span className="ml-auto size-1.5 rounded-full bg-brand group-data-[collapsible=icon]:hidden" />
+          {live ? (
+            <LiveUserAccount sidebar />
+          ) : (
+            <>
+              <span className="grid size-8.5 shrink-0 place-items-center rounded-full border-3 border-line bg-(--accent-background) text-[10px] font-semibold text-(--brand-hover) shadow-[0_0_0_1px_var(--line)]">
+                JD
+              </span>
+              <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                <strong className="block text-[12px]">
+                  {state?.mode === 'live' ? state.viewer?.role : 'Demo owner'}
+                </strong>
+                <small className="block text-[10px] text-muted-foreground">
+                  {state?.mode === 'live' ? 'Organization workspace' : 'Local workspace'}
+                </small>
+              </div>
+              <span className="ml-auto size-1.5 rounded-full bg-brand group-data-[collapsible=icon]:hidden" />
+            </>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>
