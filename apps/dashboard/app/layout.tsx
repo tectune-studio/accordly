@@ -12,7 +12,6 @@ const googleSans = Google_Sans({
   weight: ['400', '500', '600', '700'],
 });
 
-
 export const metadata: Metadata = {
   title: 'Accordly — A little respect. A lot of trust.',
   description:
