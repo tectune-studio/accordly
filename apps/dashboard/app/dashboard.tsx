@@ -1,4 +1,6 @@
 'use client';
+import Image from 'next/image';
+import BrandLogo from './brand-logo';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import TeamSettings from './team-settings';
 import DomainSettings from './domain-settings';
@@ -261,10 +263,7 @@ export default function Dashboard() {
     <div className="min-h-screen">
       <aside className="sidebar" inert={modal}>
         <a className="brand" href="/" aria-label="Accordly home">
-          <span className="brand-mark">
-            c<span>k</span>
-          </span>
-          accordly<span className="brand-dot">.</span>
+          <BrandLogo />
         </a>
         <div className="workspace">
           <span className="workspace-avatar">A</span>
@@ -443,7 +442,7 @@ export default function Dashboard() {
                       <span className="art-star">✳</span>
                       <span className="art-dot" />
                       <div className="mini-banner">
-                        <span className="mini-logo">ck.</span>
+                        <BrandLogo className="mini-wordmark" />
                         <div className="mini-heart">♡</div>
                         <h3>
                           A little respect.
@@ -878,7 +877,7 @@ export default function Dashboard() {
                                 Save preferences
                               </span>
                             </div>
-                            <small>Privacy policy · Powered by ConsentKit</small>
+                            <small>Privacy policy · Powered by Accordly</small>
                           </div>
                         </div>
                       </div>
@@ -1316,10 +1315,17 @@ export default function Dashboard() {
               )}
               <footer className="main-footer">
                 <span>
-                  <span className="footer-logo">✳</span> A little respect. A lot of trust.
+                  <Image
+                    className="footer-app-icon"
+                    src="/accordly.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                  />{' '}
+                  A little respect. A lot of trust.
                 </span>
                 <span>
-                  ConsentKit <span>·</span> Open-core, always.
+                  Accordly <span>·</span> Open-core, always.
                 </span>
               </footer>
             </>

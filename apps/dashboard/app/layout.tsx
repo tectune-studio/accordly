@@ -14,6 +14,7 @@ const googleSans = Google_Sans({
 
 export const metadata: Metadata = {
   title: 'Accordly — A little respect. A lot of trust.',
+  icons: { icon: '/accordly.png', apple: '/accordly.png' },
   description:
     'Developer-first consent management. Configure, publish, and understand your consent experience.',
 };

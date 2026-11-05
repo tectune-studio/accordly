@@ -89,26 +89,38 @@ button:hover:not(:disabled) {
   letter-spacing: -1.2px;
   padding: 0 9px;
 }
-.brand-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  letter-spacing: -6px;
-  padding-right: 5px;
-  width: 35px;
-  height: 36px;
-  background: #1c7058;
-  border-radius: 11px;
-  color: white;
-  font-family: var(--font-sans);
-  font-size: 27px;
-  margin-right: 10px;
+.brand-logo {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  width: 170px;
+  max-width: 100%;
+  aspect-ratio: 5 / 1;
+  flex-shrink: 0;
+  vertical-align: middle;
 }
-.brand-mark span {
-  font-size: 22px;
+.brand-logo img {
+  position: absolute;
+  max-width: none;
+  height: auto;
 }
-.brand-dot {
-  color: #d2a77b;
+.brand-logo-dark img {
+  width: 197.2%;
+  left: -50.4%;
+  top: -98.4%;
+}
+.brand-logo-light img {
+  width: 160.9%;
+  left: -32.3%;
+  top: -124.6%;
+}
+.brand-logo.mini-wordmark {
+  width: 105px;
+}
+.footer-app-icon {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 5px;
 }
 .workspace {
   margin-top: 32px;
