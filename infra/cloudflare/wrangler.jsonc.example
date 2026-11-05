@@ -1,0 +1,53 @@
+{
+	"$schema": "https://unpkg.com/wrangler/config-schema.json",
+	"name": "",
+	"account_id": "",
+	"workers_dev": false,
+	"routes": [
+		{
+			"pattern": "",
+			"custom_domain": true
+		}
+	],
+	"main": "src/worker.ts",
+	"compatibility_date": "",
+	"r2_buckets": [
+		{
+			"binding": "CONFIGS",
+			"bucket_name": ""
+		},
+		{
+			"binding": "RECEIPTS",
+			"bucket_name": ""
+		},
+	],
+	"queues": {
+		"producers": [
+			{
+				"binding": "CONSENT_QUEUE",
+				"queue": ""
+			}
+		],
+		"consumers": [
+			{
+				"queue": "",
+				"max_batch_size": 50,
+				"max_retries": 5,
+				"dead_letter_queue": "",
+			},
+		],
+	},
+	"ratelimits": [
+		{
+			"name": "INGEST_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 60,
+				"period": 60
+			}
+		},
+	],
+	"observability": {
+		"enabled": true
+	},
+}

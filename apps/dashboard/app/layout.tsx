@@ -7,8 +7,11 @@ const googleSans = Google_Sans({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-google-sans',
+  adjustFontFallback: false, // Prevents layout-shift lookup calculations
+  fallback: ['ui-sans-serif', 'system-ui', 'sans-serif'], // Manually maps your font stack fallback
   weight: ['400', '500', '600', '700'],
 });
+
 
 export const metadata: Metadata = {
   title: 'Accordly — A little respect. A lot of trust.',

@@ -43,3 +43,6 @@ next-env.d.ts
 playwright-report/
 test-results/
 .wrangler/
+supabase/cert/prod-ca-2021.crt
+
+/infra/cloudflare/wrangler.jsonc
