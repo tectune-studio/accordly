@@ -22,7 +22,7 @@ export default function ConsentRecordsPage() {
           <strong className="text-[28px] tracking-[-0.6px] font-medium block [@media(max-width:720px)]:text-6.25 my-2.5 mx-0">
             {total}
           </strong>
-          <small className="text-2.25 text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
+          <small className="text-[9px] text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
             Server-received browser assertions
           </small>
         </div>
@@ -34,7 +34,7 @@ export default function ConsentRecordsPage() {
           <strong className="text-[28px] tracking-[-0.6px] font-medium block [@media(max-width:720px)]:text-6.25 my-2.5 mx-0">
             {accepted}
           </strong>
-          <small className="text-2.25 text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
+          <small className="text-[9px] text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
             Optional purposes enabled
           </small>
         </div>
@@ -46,7 +46,7 @@ export default function ConsentRecordsPage() {
           <strong className="text-[28px] tracking-[-0.6px] font-medium block [@media(max-width:720px)]:text-6.25 my-2.5 mx-0">
             {rejected}
           </strong>
-          <small className="text-2.25 text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
+          <small className="text-[9px] text-muted-foreground block [@media(max-width:720px)]:text-[8px]">
             Required purposes only
           </small>
         </div>
@@ -79,19 +79,19 @@ export default function ConsentRecordsPage() {
           <table className="w-full border-collapse text-left text-[11px]">
             <thead>
               <tr>
-                <th className="text-2.25 text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
+                <th className="text-[9px] text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
                   Receipt / received
                 </th>
-                <th className="text-2.25 text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
+                <th className="text-[9px] text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
                   Project
                 </th>
-                <th className="text-2.25 text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
+                <th className="text-[9px] text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
                   Decision
                 </th>
-                <th className="text-2.25 text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
+                <th className="text-[9px] text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
                   Purposes enabled
                 </th>
-                <th className="text-2.25 text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
+                <th className="text-[9px] text-muted-foreground tracking-[0.4px] font-medium bg-canvas border-y border-line whitespace-nowrap py-3.25 px-5">
                   Version
                 </th>
               </tr>
@@ -109,7 +109,7 @@ export default function ConsentRecordsPage() {
                       <code className="text-[10px] text-(--brand-hover)">
                         {r.receiptId.slice(0, 13)}…
                       </code>
-                      <small className="block text-2.25 text-muted-foreground mt-1">
+                      <small className="block text-[9px] text-muted-foreground mt-1">
                         {new Date(r.receivedAt).toLocaleString()}
                       </small>
                     </td>

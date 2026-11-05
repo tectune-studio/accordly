@@ -69,7 +69,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
         },
       });
     }
-    if (process.env.CONSENTKIT_MODE !== 'demo') return liveGet(req, path);
+    if (process.env.ACCORDLY_MODE !== 'demo') return liveGet(req, path);
     const state = await readStore();
     if (path[0] === 'public' && path[1]) {
       const p = project(state, path[1]);
@@ -116,7 +116,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ path
 export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   try {
     const { path } = await params;
-    if (process.env.CONSENTKIT_MODE !== 'demo') return livePost(req, path);
+    if (process.env.ACCORDLY_MODE !== 'demo') return livePost(req, path);
     sameOrigin(req);
     const input = await body(req);
     if (path.join('/') === 'v1/events') {

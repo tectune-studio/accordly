@@ -1,8 +1,14 @@
 import { defineConfig } from '@playwright/test';
 import { existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+
+const dataDirectory = path.join(tmpdir(), `accordly-e2e-${randomUUID()}`);
 export default defineConfig({
   testDir: './test/e2e',
   fullyParallel: false,
+  globalTeardown: './test/e2e-teardown.ts',
   workers: 1,
   retries: 0,
   reporter: 'list',
@@ -21,7 +27,7 @@ export default defineConfig({
     url: 'http://localhost:3100',
     reuseExistingServer: false,
     timeout: 60000,
-    env: { CONSENTKIT_MODE: 'demo', CONSENTKIT_DATA_DIR: process.cwd() + '/.data/e2e' },
+    env: { ACCORDLY_MODE: 'demo', CONSENTKIT_DATA_DIR: dataDirectory },
   },
   outputDir: 'test-results',
 });

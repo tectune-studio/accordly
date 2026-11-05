@@ -86,7 +86,7 @@ For versioned API and compatibility rules, see the [schema contracts](packages/s
 
 ## Demo boundaries
 
-`CONSENTKIT_MODE=demo` explicitly enables the local single-organization demo. Its administrative endpoints are unauthenticated. **Do not expose this mode as a public hosted SaaS.** Live mode requires Clerk authentication and the restricted PostgreSQL runtime connection. `.env.example` contains placeholders only; supply real credentials securely in deployment settings.
+`ACCORDLY_MODE=demo` explicitly enables the local single-organization demo. Its administrative endpoints are unauthenticated. **Do not expose this mode as a public hosted SaaS.** Live mode requires Clerk authentication and the restricted PostgreSQL runtime connection. `.env.example` contains placeholders only; supply real credentials securely in deployment settings.
 
 Demo persistence uses serialized local JSON writes; `CONSENTKIT_DATA_DIR` overrides its location. Live persistence uses PostgreSQL. Retention/deletion jobs are implemented and must be scheduled with the separate maintenance credential. No page-load telemetry is collected; plan quotas and traffic billing are not implemented.
 

@@ -88,14 +88,14 @@ export default function BillingPage() {
                 </p>
                 <div className="text-[32px] tracking-[-1px] my-5 mx-0">
                   ${price}
-                  <span className="text-2.25 text-muted-foreground tracking-[0] ml-1.25">
+                  <span className="text-[9px] text-muted-foreground tracking-[0] ml-1.25">
                     / month
                   </span>
                 </div>
                 <ul className="border-t border-line list-none flex-1 m-0 py-[15px] px-0">
                   {features.map((f) => (
                     <li
-                      className="flex gap-2 text-(--brand-hover) text-[10px] [@media(max-width:720px)]:text-2.25 my-3 mx-0"
+                      className="flex gap-2 text-(--brand-hover) text-[10px] [@media(max-width:720px)]:text-[9px] my-3 mx-0"
                       key={f}
                     >
                       ✓ <span className="text-muted-foreground">{f}</span>
@@ -106,8 +106,8 @@ export default function BillingPage() {
                   disabled={busy || state.organization.plan === id}
                   className={
                     id === 'growth'
-                      ? 'inline-flex items-center justify-center gap-2.25 min-h-10 border rounded-1.75 bg-brand text-2.25! font-semibold! whitespace-nowrap border-brand text-(--on-brand)! shadow-[0_2px_3px_var(--shadow-color)] [@media(max-width:720px)]:text-[8px]! enabled:hover:bg-(--brand-hover) enabled:hover:border-(--brand-hover) enabled:hover:filter-none! py-2.5 px-1.75 motion-reduce:transition-none!'
-                      : 'inline-flex items-center justify-center gap-2.25 min-h-10 border border-line rounded-1.75 bg-surface text-2.25! font-semibold! whitespace-nowrap [@media(max-width:720px)]:text-[8px]! py-2.5 px-1.75 motion-reduce:transition-none!'
+                      ? 'inline-flex items-center justify-center gap-2.25 min-h-10 border rounded-1.75 bg-brand text-[9px]! font-semibold! whitespace-nowrap border-brand text-(--on-brand)! shadow-[0_2px_3px_var(--shadow-color)] [@media(max-width:720px)]:text-[8px]! enabled:hover:bg-(--brand-hover) enabled:hover:border-(--brand-hover) enabled:hover:filter-none! py-2.5 px-1.75 motion-reduce:transition-none!'
+                      : 'inline-flex items-center justify-center gap-2.25 min-h-10 border border-line rounded-1.75 bg-surface text-[9px]! font-semibold! whitespace-nowrap [@media(max-width:720px)]:text-[8px]! py-2.5 px-1.75 motion-reduce:transition-none!'
                   }
                   onClick={() =>
                     action(

@@ -1,6 +1,6 @@
 # Accordly authentication and database operations
 
-Live mode uses Clerk organizations and PostgreSQL. `CONSENTKIT_MODE=demo` retains the isolated local fixture adapter for browser tests. No live administrative request may use that mode.
+Live mode uses Clerk organizations and PostgreSQL. `ACCORDLY_MODE=demo` retains the isolated local fixture adapter for browser tests. No live administrative request may use that mode.
 
 Every live administrative request verifies the signed Clerk session and fetches the current organization membership from Clerk. Session role claims alone are insufficient. Administrator (`org:admin`) can publish and manage people; Editor (`org:editor`, configure this custom role in Clerk) manages projects/drafts; Viewer (`org:member` or `org:viewer`) reads/exports. Unknown roles fail closed. Sign-in and sign-up pages and organization selection are provided; organization membership management is under Settings.
 
@@ -11,7 +11,7 @@ The supplied Supabase public URL/key identify the project; private data is acces
 1. Configure `SUPABASE_DB_URL` securely with the migration-owner connection string.
 2. Run `node scripts/database/migrate.mjs`. Migrations use an advisory transaction lock and checksum ledger, compatible with transaction pooling.
 3. Run `node scripts/database/provision.mjs` once to generate restricted application and maintenance passwords. This rotates those role passwords and saves URLs only in ignored `apps/dashboard/.env.local`; distribute them securely to deployment secrets before starting live services.
-4. Configure `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `ACCORDLY_DATABASE_URL`, and `CONSENTKIT_MODE=live` in the application. Keep migration and maintenance credentials out of the application runtime.
+4. Configure `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `ACCORDLY_DATABASE_URL`, and `ACCORDLY_MODE=live` in the application. Keep migration and maintenance credentials out of the application runtime.
 5. Enable Organizations and configure the editor role in Clerk. Invitations are sent only when an administrator submits the invitation form.
 
 The new `accordly` schema is separate from the original `infra/postgres` draft. Do not run both as competing schema sources. No migration of existing local JSON records is automatic.

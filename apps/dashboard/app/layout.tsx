@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${googleSans.className} bg-canvas font-sans text-sm leading-normal text-ink`}
       >
-        {process.env.CONSENTKIT_MODE === 'demo' ? (
+        {process.env.ACCORDLY_MODE === 'demo' ? (
           children
         ) : (
           <ClerkProvider
