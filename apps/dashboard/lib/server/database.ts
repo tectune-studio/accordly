@@ -13,7 +13,9 @@ function getPool() {
     for (const k of ['sslmode', 'sslcert', 'sslkey', 'sslrootcert']) url.searchParams.delete(k);
     pool = new Pool({
       connectionString: url.toString(),
-      ssl: ['localhost', '127.0.0.1'].includes(url.hostname) ? false : { rejectUnauthorized: true },
+      ssl: ['localhost', '127.0.0.1'].includes(url.hostname)
+        ? false
+        : { rejectUnauthorized: true, ca: process.env.SUPABASE_CA_CERT?.replace(/\\n/g, '\n') },
       max: 5,
       connectionTimeoutMillis: 10000,
       idleTimeoutMillis: 30000,

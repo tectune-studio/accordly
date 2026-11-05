@@ -12,7 +12,9 @@ export function connectConfig(url) {
     parsed.searchParams.delete(key);
   return {
     connectionString: parsed.toString(),
-    ssl: local ? false : { rejectUnauthorized: true },
+    ssl: local
+      ? false
+      : { rejectUnauthorized: true, ca: process.env.SUPABASE_CA_CERT?.replace(/\\n/g, '\n') },
     connectionTimeoutMillis: 10000,
   };
 }
