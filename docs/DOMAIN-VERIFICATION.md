@@ -1,6 +1,6 @@
 # Domain ownership
 
-In live Banner studio, administrators generate either a DNS TXT challenge or an HTTPS file challenge. Viewers/editors can see verification status but only administrators may issue or check a challenge. Clerk membership is checked for each request; records are isolated by organization RLS.
+In live Banner Studio, administrators generate either a DNS TXT challenge or an HTTPS file challenge. Viewers/editors can see verification status but only administrators may issue or check a challenge. Clerk membership is checked for each request; records are isolated by organization RLS.
 
 - `GET /api/projects/:id/domain`: status, without token/hash.
 - `POST /api/projects/:id/domain/challenge` with `{ "method": "dns" }` or `{ "method": "http" }`: return one-time token/instructions.

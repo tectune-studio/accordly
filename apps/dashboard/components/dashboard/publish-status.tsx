@@ -52,26 +52,38 @@ export default function PublishStatus({
   const pending = jobs.find((j) => j.phase !== 'completed');
   if (!pending && !message) return null;
   return (
-    <section className="card settings" style={{ marginBottom: 20 }}>
-      <h2>Publication status</h2>
+    <section className="mb-5 min-w-0 rounded-[10px] border border-line bg-surface p-6.25">
+      <h2 className="mt-0 mb-5.75 text-sm leading-normal font-semibold tracking-[-0.2px]">
+        Publication status
+      </h2>
       {pending && (
         <>
-          <p>
+          <p className="my-1.5 text-xs leading-normal text-muted-foreground">
             Release {pending.release_id} · {pending.phase}
           </p>
-          <p>{pending.last_error || 'Publication in progress.'}</p>
-          <p>
+          <p className="my-1.5 text-xs leading-normal text-muted-foreground">
+            {pending.last_error || 'Publication in progress.'}
+          </p>
+          <p className="my-1.5 text-xs leading-normal text-muted-foreground">
             Resume publishes the saved release. Publish again afterward to include newer draft
             edits.
           </p>
           {canManage && (
-            <button className="button" disabled={busy} onClick={() => resume(pending.id)}>
+            <button
+              className="inline-flex min-h-10 items-center justify-center gap-2.25 rounded-1.75 border border-line bg-surface px-4 py-2.5 text-[11px]! font-semibold! whitespace-nowrap motion-reduce:transition-none!"
+              disabled={busy}
+              onClick={() => resume(pending.id)}
+            >
               Resume publication
             </button>
           )}
         </>
       )}
-      {message && <p role="status">{message}</p>}
+      {message && (
+        <p className="my-1.5 text-xs leading-normal text-muted-foreground" role="status">
+          {message}
+        </p>
+      )}
     </section>
   );
 }

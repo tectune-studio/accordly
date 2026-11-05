@@ -13,10 +13,10 @@ const googleSans = Google_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Accordly — A little respect. A lot of trust.',
+  title: 'Accordly — Your privacy, your choice.',
   icons: { icon: '/accordly.png', apple: '/accordly.png' },
   description:
-    'Developer-first consent management. Configure, publish, and understand your consent experience.',
+    'Your privacy, your choice. Developer-first consent management. Configure, publish, and understand your consent experience.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +29,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           children
         ) : (
           <ClerkProvider
+            appearance={{
+              variables: {
+                colorPrimary: '#433BCA',
+                colorBackground: '#FFFFFF',
+                colorForeground: '#000000',
+                colorPrimaryForeground: '#FFFFFF',
+              },
+            }}
             signInUrl="/sign-in"
             signUpUrl="/sign-up"
             signInFallbackRedirectUrl="/"

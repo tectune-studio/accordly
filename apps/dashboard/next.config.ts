@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 const config: NextConfig = {
   poweredByHeader: false,
-  transpilePackages: ['@consentkit/core'],
+  transpilePackages: ['@accordly/core'],
   async headers() {
     return [
       {

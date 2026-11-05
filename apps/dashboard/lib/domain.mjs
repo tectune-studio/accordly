@@ -1,4 +1,4 @@
-import { validateConfig } from '@consentkit/core';
+import { validateConfig } from '@accordly/core';
 export const DEFAULT_PURPOSES = [
   {
     id: 'necessary',

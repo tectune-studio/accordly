@@ -113,7 +113,7 @@ export function createConsentManager({
   let ui = null,
     uiGeneration = 0;
   const subscribers = new Set();
-  const key = `consentkit:${config.projectId}`;
+  const key = `accordly:${config.projectId}`;
   const cookieKey = encodeURIComponent(key);
   const gpc = () => Boolean(globalThis.navigator?.globalPrivacyControl);
   const enforceGpc = () => {
@@ -131,7 +131,7 @@ export function createConsentManager({
   const emit = () => {
     if (typeof window !== 'undefined')
       window.dispatchEvent(
-        new CustomEvent('consentkit:change', {
+        new CustomEvent('accordly:change', {
           detail: { choices: { ...current }, state: receipt ? 'decided' : 'unknown' },
         }),
       );

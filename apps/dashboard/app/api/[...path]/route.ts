@@ -1,10 +1,10 @@
-import { liveGet, livePost } from '../../../lib/server/live-api';
-import { toBannerConfig, validateEvent } from '../../../lib/contracts.mjs';
+import { liveGet, livePost } from '@/lib/server/live-api';
+import { toBannerConfig, validateEvent } from '@/lib/contracts.mjs';
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { readStore, mutateStore, audit } from '../../../lib/store.mjs';
-import { makeConfig, parseConfig, parseProject, validateReceipt } from '../../../lib/domain.mjs';
+import { readStore, mutateStore, audit } from '@/lib/store.mjs';
+import { makeConfig, parseConfig, parseProject, validateReceipt } from '@/lib/domain.mjs';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const json = (data: unknown, status = 200, headers: Record<string, string> = {}) =>

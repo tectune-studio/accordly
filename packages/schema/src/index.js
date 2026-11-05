@@ -1,4 +1,4 @@
-// Generated from JSON Schema. Run npm run generate -w @consentkit/schema.
+// Generated from JSON Schema. Run npm run generate -w @accordly/schema.
 import { z } from 'zod';
 export const BannerConfigReader = z
   .object({

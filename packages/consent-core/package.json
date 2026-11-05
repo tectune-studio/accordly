@@ -1,5 +1,5 @@
 {
-  "name": "@consentkit/core",
+  "name": "@accordly/core",
   "version": "0.2.0",
   "type": "module",
   "license": "Apache-2.0",
@@ -18,6 +18,6 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@consentkit/schema": "1.0.0"
+    "@accordly/schema": "1.0.0"
   }
 }

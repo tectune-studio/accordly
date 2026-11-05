@@ -4,7 +4,7 @@ import { jsonSchemaToZod } from 'json-schema-to-zod';
 const root = new URL('../', import.meta.url);
 let types = '',
   code =
-    "// Generated from JSON Schema. Run npm run generate -w @consentkit/schema.\nimport {z} from 'zod';\n";
+    "// Generated from JSON Schema. Run npm run generate -w @accordly/schema.\nimport {z} from 'zod';\n";
 for (const [file, name] of [
   ['banner-config', 'BannerConfig'],
   ['consent-event', 'ConsentEvent'],

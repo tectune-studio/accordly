@@ -30,7 +30,8 @@ test('v1 SDK lazily loads UI, gates DOM elements, persists secure cookies and in
     frame.dataset.src = '/api/state?frame=true';
     frame.dataset.consentCategory = 'marketing';
     document.body.append(frame);
-    const sdk = await import(/* webpackIgnore: true */ '/api/sdk/0.2.0/consent.js');
+    const sdkUrl = new URL('/api/sdk/0.2.0/consent.js', window.location.origin);
+    const sdk = await import(/* webpackIgnore: true */ sdkUrl.href);
     w.cmp = sdk
       .createConsentManager({ config, onEvent: (e: unknown) => w.events.push(e) })
       .initialize();
@@ -45,7 +46,7 @@ test('v1 SDK lazily loads UI, gates DOM elements, persists secure cookies and in
   expect(await page.evaluate(() => (window as any).__activated)).toBe(1);
   await expect(page.locator('#gated-frame')).toHaveAttribute('src', '/api/state?frame=true');
   const cookie = (await context.cookies()).find(
-    (c) => c.name === encodeURIComponent('consentkit:' + project.id),
+    (c) => c.name === encodeURIComponent('accordly:' + project.id),
   );
   expect(cookie?.secure).toBe(true);
   expect(cookie?.sameSite).toBe('Lax');

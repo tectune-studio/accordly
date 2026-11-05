@@ -41,7 +41,7 @@ export function adaptConfig(c, country, language) {
   };
 }
 export function subjectId(storage) {
-  const key = 'consentkit:subject';
+  const key = 'accordly:subject';
   let id;
   try {
     id = storage?.getItem(key);

@@ -11,7 +11,7 @@ test.describe.serial('local product workflow', () => {
     await page.getByLabel('Project name').fill('Browser test ' + Date.now());
     await page.getByLabel('Website domain').fill('browser.example');
     await page.getByRole('button', { name: 'Create project →' }).click();
-    await expect(page.getByRole('heading', { name: 'Banner studio', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Banner Studio', exact: true })).toBeVisible();
     await page.getByLabel('Banner title').fill('Your choice comes first.');
     await page.getByRole('button', { name: 'Publish banner' }).click();
     await expect(page.getByText('Your consent experience is published.')).toBeVisible();
@@ -102,7 +102,7 @@ test.describe.serial('local product workflow', () => {
       firstRelease,
     );
     await page.goto('/');
-    await page.getByRole('button', { name: 'Consent records', exact: true }).click();
+    await page.getByRole('link', { name: 'Consent records', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Consent records', exact: true })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'Withdraw', exact: true }).first()).toBeVisible();
     const exported = await request.get('/api/export');
@@ -153,7 +153,7 @@ test.describe.serial('local product workflow', () => {
       390,
     );
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.getByRole('button', { name: 'Billing', exact: true }).click();
+    await page.getByRole('link', { name: 'Billing', exact: true }).click();
     await expect(page.getByText('Explore plans in demo mode.')).toBeVisible();
     await page.getByRole('button', { name: 'Try Starter in demo' }).click();
     await expect(page.getByText('Demo plan changed. No payment was taken.')).toBeVisible();

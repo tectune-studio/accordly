@@ -1,5 +1,5 @@
 {
-  "name": "@consentkit/react",
+  "name": "@accordly/react",
   "version": "0.1.0",
   "type": "module",
   "license": "Apache-2.0",
@@ -10,6 +10,6 @@
     "react": "^19.0.0"
   },
   "dependencies": {
-    "@consentkit/core": "0.2.0"
+    "@accordly/core": "0.2.0"
   }
 }

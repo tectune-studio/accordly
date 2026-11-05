@@ -35,7 +35,7 @@
           language: document.documentElement.lang || config.defaultLanguage,
           onError: (error) => console.error('ConsentKit', error),
           onEvent: (event) =>
-            window.dispatchEvent(new CustomEvent('consentkit:decision', { detail: event })),
+            window.dispatchEvent(new CustomEvent('accordly:decision', { detail: event })),
         })
         .initialize();
       window.ConsentKit = manager;

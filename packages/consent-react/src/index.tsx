@@ -5,7 +5,7 @@ import {
   type ConsentConfig,
   type Manager,
   type Receipt,
-} from '@consentkit/core';
+} from '@accordly/core';
 const Context = createContext<{ manager: Manager | null; choices: Record<string, boolean> }>({
   manager: null,
   choices: {},

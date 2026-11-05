@@ -1,9 +1,9 @@
-# @consentkit/core
+# @accordly/core
 
 Framework-independent consent UI, first-party preferences, integration gates, and Google Consent Mode adapter. No hosted account or telemetry required. Apache-2.0.
 
 ```js
-import { createConsentManager } from '@consentkit/core';
+import { createConsentManager } from '@accordly/core';
 const manager = createConsentManager({ config }).initialize();
 const release = manager.gate('analytics', startAnalytics, stopAnalytics);
 if (!manager.hasDecision()) manager.showPreferences();
@@ -18,7 +18,7 @@ Initialize before optional tags. Explicitly gate each integration; the SDK canno
 
 ## Version 1 contracts and startup ordering
 
-The manager also accepts `BannerConfig` from `@consentkit/schema`, a `country`, `language`, and an `onEvent(event)` callback for the v1 event format. `getState()` returns `unknown` or `decided`. The old configuration and `onDecision` callback remain supported. `showPreferences()` now returns a Promise and imports the UI lazily.
+The manager also accepts `BannerConfig` from `@accordly/schema`, a `country`, `language`, and an `onEvent(event)` callback for the v1 event format. `getState()` returns `unknown` or `decided`. The old configuration and `onDecision` callback remain supported. `showPreferences()` now returns a Promise and imports the UI lazily.
 
 For direct website delivery, put the **classic, synchronous** `loader.js` first in the head, without `async`, `defer`, or `type="module"`. It queues Google's denied defaults with `wait_for_update: 500` before fetching config or loading the module graph. Module-only installation must separately call/queue those defaults synchronously before GTM/gtag.
 
@@ -33,7 +33,7 @@ For direct website delivery, put the **classic, synchronous** `loader.js` first 
 <button data-consent-preferences>Privacy preferences</button>
 ```
 
-The loader exposes `window.ConsentKit`, emits `consentkit:change` (choices/state), and forwards decision payloads through `consentkit:decision`. Hosts attach a durable transport to that decision event or use `onEvent`. Retry the same event ID; do not generate a new event for each retry.
+The loader exposes `window.ConsentKit`, emits `accordly:change` (choices/state), and forwards decision payloads through `accordly:decision`. Hosts attach a durable transport to that decision event or use `onEvent`. Retry the same event ID; do not generate a new event for each retry.
 
 Decisions are stored in a host-only Secure, SameSite=Lax cookie with a configured Max-Age, mirrored in localStorage. HTTPS is required outside localhost. GPC disables the configured categories where the selected region rule respects it. Opt-in is the conservative fallback; opt-out regions can enable optional categories before a decision, while the initial preferences UI leaves optional checkboxes unchecked. Vendor cookies are catalog metadata: the SDK does not claim to remove every vendor cookie or undo already-executed scripts. Withdrawal stops future gated activation and clears activated iframe sources; site-owned SDKs still need teardown callbacks.
 

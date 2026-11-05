@@ -17,7 +17,7 @@ export default defineConfig({
     },
   },
   webServer: {
-    command: 'npm run start -w @consentkit/dashboard -- --port 3100',
+    command: 'npm run start -w @accordly/dashboard -- --port 3100',
     url: 'http://localhost:3100',
     reuseExistingServer: false,
     timeout: 60000,

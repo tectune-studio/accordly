@@ -1,4 +1,4 @@
-import type { BannerConfig, ConsentEvent } from '@consentkit/schema';
+import type { BannerConfig, ConsentEvent } from '@accordly/schema';
 export interface Purpose {
   id: string;
   name: string;

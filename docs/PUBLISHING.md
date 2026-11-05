@@ -19,7 +19,7 @@ Current delivery reads bypass caches (`no-store`), preventing stale current poin
 - `POST /api/projects/{project}/publish` accepts `{ "requestId": "<uuid>" }`. Retain the same UUID when retrying. A completed request ID returns its original result without republishing or duplicating its audit.
 - `POST /api/projects/{project}/rollback` accepts `{ "releaseId": "rel_...", "requestId": "<uuid>" }` and uses the same protocol with a new generation.
 - `GET /api/projects/{project}/publishes` lists the latest 20 jobs, phases and safe failure messages for the current organization.
-- Banner studio displays pending publications and a **Resume publication** button. Resume uses the saved release; subsequent draft edits need another publish after completion. With no request ID, an unfinished project job is resumed automatically.
+- Banner Studio displays pending publications and a **Resume publication** button. Resume uses the saved release; subsequent draft edits need another publish after completion. With no request ID, an unfinished project job is resumed automatically.
 - Recovery is initiated by an authenticated administrator, not an unattended cron impersonating a user. Monitor unfinished jobs and resume after restoring the dependency. A request can take roughly 60 seconds across all steps; configure the dashboard request timeout accordingly. Shorter request budgets are safe but may require resume.
 - If proof expired during an unfinished job, verify the same domain again and resume. The job refreshes its proof expiry and generation before replaying publication. A different hostname cannot inherit the pending release's proof.
 

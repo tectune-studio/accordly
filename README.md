@@ -2,7 +2,7 @@
 
 An open-core consent management starter: a standalone NPM consent engine and a Next.js control plane. Includes a functioning local project → edit → publish → consent → receipt/export workflow, with dummy environment variables for future hosted services.
 
-Accordly now includes a Clerk organization/RBAC integration and a server-only PostgreSQL adapter with forced row-level policies, migrations, restricted runtime roles, and maintenance jobs. See [Accordly operations](docs/ACCORDLY-OPERATIONS.md). Migrations and isolation/restore checks passed against disposable PostgreSQL; the live Supabase connection remains refused, so remote migration and live login verification are still pending. Existing `@consentkit` package names remain for compatibility.
+Accordly now includes a Clerk organization/RBAC integration and a server-only PostgreSQL adapter with forced row-level policies, migrations, restricted runtime roles, and maintenance jobs. See [Accordly operations](docs/ACCORDLY-OPERATIONS.md). Migrations and isolation/restore checks passed against disposable PostgreSQL; the live Supabase connection remains refused, so remote migration and live login verification are still pending. Existing `@accordly` package names remain for compatibility.
 
 ## Run locally
 
@@ -14,7 +14,7 @@ cp .env.example apps/dashboard/.env.local # only when no local configuration exi
 npm run dev
 ```
 
-Open the dashboard on port 3000. Create a project or use Studio website, open **Banner studio**, publish, then open the published demo. Accept, reject, customize, or withdraw consent; return to **Consent records** to inspect and export the resulting decisions.
+Open the dashboard on port 3000. Create a project or use Studio website, open **Banner Studio**, publish, then open the published demo. Accept, reject, customize, or withdraw consent; return to **Consent records** to inspect and export the resulting decisions.
 
 ```sh
 npm test          # state, validation, gate, persistence, and edge-unit tests
@@ -144,7 +144,7 @@ saas-app/
 
 Local `.env.local` files, `.data/` stores, `node_modules/`, `.next/`, and browser test outputs are ignored by Git. See [implementation status](docs/IMPLEMENTATION.md) for remaining engineering work and the [production guide](docs/PRODUCTION.md) for infrastructure requirements.
 
-The core is usable without the dashboard, a subscription, or any network service. See its [package documentation](packages/consent-core/README.md). The React package currently exports TypeScript source and requires a compatible bundler; compile distribution files before a public NPM release. Names under `@consentkit` are provisional and have not been reserved or published.
+The core is usable without the dashboard, a subscription, or any network service. See its [package documentation](packages/consent-core/README.md). The React package currently exports TypeScript source and requires a compatible bundler; compile distribution files before a public NPM release. Names under `@accordly` are provisional and have not been reserved or published.
 
 ## License
 

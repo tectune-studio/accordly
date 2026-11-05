@@ -16,7 +16,7 @@ Use PostgreSQL with backups and a connection pool (Hyperdrive for supported Work
 
 `infra/cloudflare/src/worker.ts` is separate from the Node dashboard. It is typechecked but has not been executed against Cloudflare resources.
 
-Provision R2 `consentkit-configs` and `consentkit-receipts`, Queues `consentkit-decisions` and `consentkit-decisions-dlq`, and a rate-limiting binding. Review resource names and `infra/cloudflare/wrangler.jsonc`; use a pinned, tested Wrangler toolchain when deploying.
+Provision R2 `accordly-configs` and `accordly-receipts`, Queues `accordly-decisions` and `accordly-decisions-dlq`, and a rate-limiting binding. Review resource names and `infra/cloudflare/wrangler.jsonc`; use a pinned, tested Wrangler toolchain when deploying.
 
 Expected objects:
 

@@ -90,7 +90,7 @@ export function createConsentManager({
   let root = null;
   let returnFocus = null;
   const subscribers = new Set();
-  const key = `consentkit:${config.projectId}`;
+  const key = `accordly:${config.projectId}`;
   const safeError = (e) => {
     try {
       onError(e);

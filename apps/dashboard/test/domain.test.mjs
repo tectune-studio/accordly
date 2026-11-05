@@ -52,7 +52,7 @@ test('receipt validation ties decisions to exact releases and validates required
   );
 });
 test('local store serializes concurrent writes and persists across reads', async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), 'consentkit-store-'));
+  const directory = await mkdtemp(path.join(tmpdir(), 'accordly-store-'));
   process.env.CONSENTKIT_DATA_DIR = directory;
   const { mutateStore, readStore } = await import('../lib/store.mjs');
   try {
