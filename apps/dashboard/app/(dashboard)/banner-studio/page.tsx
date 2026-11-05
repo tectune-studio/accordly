@@ -255,12 +255,11 @@ export default function BannerStudioPage() {
               onClick={() => copy(install)}
             >
               <Copy size={10} />
-              <span >Copy install snippet</span>
+              <span>Copy install snippet</span>
             </button>
             <pre className="bg-(--inverse-background) text-(--inverse-foreground) border border-(--brand-hover) rounded-[8px] text-[10px] leading-[1.8] overflow-auto max-h-50 whitespace-pre p-4">
               {install}
             </pre>
-
           </div>
         </section>
       </div>

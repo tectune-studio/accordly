@@ -43,7 +43,8 @@ export default function OverviewPage() {
               if (project) openStudio(project);
             }}
           >
-            Customize Banner <span className="ml-4.5 [@media(max-width:720px)]:ml-0">
+            Customize Banner{' '}
+            <span className="ml-4.5 [@media(max-width:720px)]:ml-0">
               <PenLine size={15} />
             </span>
           </button>

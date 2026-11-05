@@ -11,13 +11,9 @@ export function DashboardFooter() {
           width={20}
           height={20}
         />{' '}
-        <span>
-        Your privacy, your choice.
-        </span>
+        <span>Your privacy, your choice.</span>
       </span>
-      <span className="first:flex first:items-center first:gap-2 ">
-      Open-core, Always.
-      </span>
+      <span className="first:flex first:items-center first:gap-2 ">Open-core, Always.</span>
     </footer>
   );
 }

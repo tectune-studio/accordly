@@ -1,4 +1,3 @@
-
 import { useEffect, type FormEventHandler } from 'react';
 import { Icon } from './icon';
 

@@ -16,13 +16,13 @@ export default function BillingPage() {
       {state.mode !== 'live' && (
         <>
           <div className="flex flex-col items-start  bg-(--accent-background) border border-line rounded-2.25 mb-6.25 text-(--brand-hover) [@media(max-width:720px)]:gap-2.5 py-[19px] px-5.5 [@media(max-width:720px)]:p-4">
-              <strong className="text-[12px] font-medium [@media(max-width:720px)]:text-[11px]">
-                Explore plans in demo mode.
-              </strong>
-              <p className="text-muted-foreground text-[11px] [@media(max-width:720px)]:text-[10px] my-1.5 mx-0">
-                Plan changes are simulated locally. There is no checkout, charge, or live
-                subscription.
-              </p>
+            <strong className="text-[12px] font-medium [@media(max-width:720px)]:text-[11px]">
+              Explore plans in demo mode.
+            </strong>
+            <p className="text-muted-foreground text-[11px] [@media(max-width:720px)]:text-[10px] my-1.5 mx-0">
+              Plan changes are simulated locally. There is no checkout, charge, or live
+              subscription.
+            </p>
           </div>
           <div className="grid grid-cols-4 gap-3.75 mt-8.75 items-stretch [@media(max-width:1200px)]:grid-cols-2 [@media(max-width:1200px)]:gap-[30px_18px] [@media(max-width:720px)]:gap-[35px_12px]">
             {[

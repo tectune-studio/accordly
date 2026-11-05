@@ -117,7 +117,11 @@ export function DashboardSidebar() {
             Open by design.
           </strong>
           <span className="flex items-center gap-1 text-[10px] ">
-            Check out source <ArrowRight size={12} className="text-[10px] group-hover:translate-x-1 transition-transform" />
+            Check out source{' '}
+            <ArrowRight
+              size={12}
+              className="text-[10px] group-hover:translate-x-1 transition-transform"
+            />
           </span>
         </a>
         <div

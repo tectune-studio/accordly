@@ -10,9 +10,7 @@ export default function SettingsPage() {
     <div className="grid grid-cols-2 gap-6 [@media(max-width:1000px)]:grid-cols-1 [@media(max-width:720px)]:gap-4">
       {state.mode === 'live' && <TeamSettings />}
       <section className="bg-surface border border-line rounded-[10px] min-w-0 p-6.25">
-        <h2 className="text-[14px] tracking-[-0.2px] mt-0 mb-5.75 font-semibold mx-0">
-          Workspace
-        </h2>
+        <h2 className="text-[14px] tracking-[-0.2px] mt-0 mb-5.75 font-semibold mx-0">Workspace</h2>
         <label className="block text-[11px] text-ink">
           Name
           <input

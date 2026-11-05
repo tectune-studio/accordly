@@ -5,12 +5,18 @@ import { ProjectCard } from '@/components/dashboard/project-card';
 import { SearchIcon } from 'lucide-react';
 
 export default function ProjectsPage() {
-  const { state, query, setQuery, openStudio, openCreateProject: onCreateProject } = useDashboardContext();
+  const {
+    state,
+    query,
+    setQuery,
+    openStudio,
+    openCreateProject: onCreateProject,
+  } = useDashboardContext();
   if (!state) return null;
   return (
     <>
       <div className="flex items-start flex-col justify-start gap-4 mb-5 text-muted-foreground text-[11px] [@media(max-width:720px)]:flex-wrap">
-       <label className="flex text-[11px]  text-ink items-center gap-2 border border-line rounded-1.75 bg-surface focus:outline-none focus:ring-0 min-w-62.5 [@media(max-width:720px)]:min-w-0 [@media(max-width:720px)]:w-full py-0 px-3">
+        <label className="flex text-[11px]  text-ink items-center gap-2 border border-line rounded-1.75 bg-surface focus:outline-none focus:ring-0 min-w-62.5 [@media(max-width:720px)]:min-w-0 [@media(max-width:720px)]:w-full py-0 px-3">
           <SearchIcon size={15} className="text-ink" />
           <input
             className="block w-full border-0 rounded-[6px] bg-surface text-ink! text-[11px]! focus:outline-none focus:ring-0  min-w-0 mx-0 py-2.5 px-0"
