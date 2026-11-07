@@ -15,12 +15,7 @@ import {
   type CurrencyCode,
 } from '@/lib/billing/currency';
 import { FEATURE_MATRIX } from '@/lib/billing/features';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Plan = (typeof plans)[number];
 type Billing = 'monthly' | 'annual';
@@ -462,7 +457,6 @@ export default function Pricing() {
                               </TooltipContent>
                             </Tooltip>
                           )}
-
                         </div>
                       </td>
                       {plans.map((plan, j) => {
@@ -474,13 +468,25 @@ export default function Pricing() {
                           >
                             {typeof val === 'boolean' ? (
                               val ? (
-                                <Check size={18} strokeWidth={2.5} className="mx-auto text-[#00b27b]" />
+                                <Check
+                                  size={18}
+                                  strokeWidth={2.5}
+                                  className="mx-auto text-[#00b27b]"
+                                />
                               ) : (
-                                <X size={18} strokeWidth={2.5} className="mx-auto text-[var(--ink)]/20" />
+                                <X
+                                  size={18}
+                                  strokeWidth={2.5}
+                                  className="mx-auto text-[var(--ink)]/20"
+                                />
                               )
                             ) : (
                               val || (
-                                <X size={18} strokeWidth={2.5} className="mx-auto text-[var(--ink)]/20" />
+                                <X
+                                  size={18}
+                                  strokeWidth={2.5}
+                                  className="mx-auto text-[var(--ink)]/20"
+                                />
                               )
                             )}
                           </td>

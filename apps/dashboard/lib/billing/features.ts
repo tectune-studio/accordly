@@ -15,7 +15,14 @@ export const FEATURE_MATRIX = [
   {
     feature: 'Consent logs',
     description: 'The retention period for keeping a secure log of user consent records.',
-    values: ['30-day logs', '12-month logs', '12-month logs', '12-month logs', '12-month logs', 'Custom'],
+    values: [
+      '30-day logs',
+      '12-month logs',
+      '12-month logs',
+      '12-month logs',
+      '12-month logs',
+      'Custom',
+    ],
   },
   {
     feature: 'A/B testing',
@@ -29,7 +36,8 @@ export const FEATURE_MATRIX = [
   },
   {
     feature: 'API access',
-    description: 'Bulk API access for programmatic management and custom workflows (Version 1.2 roadmap).',
+    description:
+      'Bulk API access for programmatic management and custom workflows (Version 1.2 roadmap).',
     values: [false, false, false, true, true, true],
   },
   {
@@ -39,7 +47,8 @@ export const FEATURE_MATRIX = [
   },
   {
     feature: 'White-label',
-    description: 'Agency multi-tenant workspace with white-label branding capabilities (Version 1.2 roadmap).',
+    description:
+      'Agency multi-tenant workspace with white-label branding capabilities (Version 1.2 roadmap).',
     values: [false, false, false, false, true, true],
   },
   {
@@ -49,12 +58,14 @@ export const FEATURE_MATRIX = [
   },
   {
     feature: 'EU data residency',
-    description: 'Option to host and process all consent data exclusively within the European Union.',
+    description:
+      'Option to host and process all consent data exclusively within the European Union.',
     values: [false, false, false, false, false, true],
   },
   {
     feature: 'Mobile SDKs',
-    description: 'Native iOS and Android SDKs with cross-platform consent sharing (Version 3 roadmap).',
+    description:
+      'Native iOS and Android SDKs with cross-platform consent sharing (Version 3 roadmap).',
     values: [false, false, false, false, false, true],
   },
 ];

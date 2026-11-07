@@ -9,7 +9,17 @@
  *   formats them.
  */
 
-export const CURRENCY_CODES = ['EUR', 'USD', 'GBP', 'CAD', 'AUD', 'BRL', 'JPY', 'INR', 'SGD'] as const;
+export const CURRENCY_CODES = [
+  'EUR',
+  'USD',
+  'GBP',
+  'CAD',
+  'AUD',
+  'BRL',
+  'JPY',
+  'INR',
+  'SGD',
+] as const;
 export type CurrencyCode = (typeof CURRENCY_CODES)[number];
 
 export const DEFAULT_CURRENCY: CurrencyCode = 'USD';
@@ -36,15 +46,87 @@ type CurrencyConfig = {
 // Update `rate` periodically, or replace convertFromUsd() with an explicit
 // per-currency price table once you set final local prices in Stripe.
 export const CURRENCIES: Record<CurrencyCode, CurrencyConfig> = {
-  EUR: { code: 'EUR', label: 'Euro (€)', symbol: '€', numberLocale: 'en-IE', decimals: 2, rate: 0.8957, step: 1 },
-  USD: { code: 'USD', label: 'US Dollar ($)', symbol: '$', numberLocale: 'en-US', decimals: 2, rate: 1, step: 1 },
-  GBP: { code: 'GBP', label: 'British Pound (£)', symbol: '£', numberLocale: 'en-GB', decimals: 2, rate: 0.7471, step: 1 },
-  CAD: { code: 'CAD', label: 'Canadian Dollar (CA$)', symbol: 'CA$', numberLocale: 'en-CA', decimals: 2, rate: 1.4066, step: 1 },
-  AUD: { code: 'AUD', label: 'Australian Dollar (A$)', symbol: 'A$', numberLocale: 'en-AU', decimals: 2, rate: 1.4554, step: 1 },
-  BRL: { code: 'BRL', label: 'Brazilian Real (R$)', symbol: 'R$', numberLocale: 'pt-BR', decimals: 2, rate: 5.5037, step: 1 },
-  JPY: { code: 'JPY', label: 'Japanese Yen (¥)', symbol: '¥', numberLocale: 'ja-JP', decimals: 0, rate: 158.3251, step: 100 },
-  INR: { code: 'INR', label: 'Indian Rupee (₹)', symbol: '₹', numberLocale: 'en-IN', decimals: 2, rate: 93.9225, step: 10 },
-  SGD: { code: 'SGD', label: 'Singapore Dollar (S$)', symbol: 'S$', numberLocale: 'en-SG', decimals: 2, rate: 1.2816, step: 1 },
+  EUR: {
+    code: 'EUR',
+    label: 'Euro (€)',
+    symbol: '€',
+    numberLocale: 'en-IE',
+    decimals: 2,
+    rate: 0.8957,
+    step: 1,
+  },
+  USD: {
+    code: 'USD',
+    label: 'US Dollar ($)',
+    symbol: '$',
+    numberLocale: 'en-US',
+    decimals: 2,
+    rate: 1,
+    step: 1,
+  },
+  GBP: {
+    code: 'GBP',
+    label: 'British Pound (£)',
+    symbol: '£',
+    numberLocale: 'en-GB',
+    decimals: 2,
+    rate: 0.7471,
+    step: 1,
+  },
+  CAD: {
+    code: 'CAD',
+    label: 'Canadian Dollar (CA$)',
+    symbol: 'CA$',
+    numberLocale: 'en-CA',
+    decimals: 2,
+    rate: 1.4066,
+    step: 1,
+  },
+  AUD: {
+    code: 'AUD',
+    label: 'Australian Dollar (A$)',
+    symbol: 'A$',
+    numberLocale: 'en-AU',
+    decimals: 2,
+    rate: 1.4554,
+    step: 1,
+  },
+  BRL: {
+    code: 'BRL',
+    label: 'Brazilian Real (R$)',
+    symbol: 'R$',
+    numberLocale: 'pt-BR',
+    decimals: 2,
+    rate: 5.5037,
+    step: 1,
+  },
+  JPY: {
+    code: 'JPY',
+    label: 'Japanese Yen (¥)',
+    symbol: '¥',
+    numberLocale: 'ja-JP',
+    decimals: 0,
+    rate: 158.3251,
+    step: 100,
+  },
+  INR: {
+    code: 'INR',
+    label: 'Indian Rupee (₹)',
+    symbol: '₹',
+    numberLocale: 'en-IN',
+    decimals: 2,
+    rate: 93.9225,
+    step: 10,
+  },
+  SGD: {
+    code: 'SGD',
+    label: 'Singapore Dollar (S$)',
+    symbol: 'S$',
+    numberLocale: 'en-SG',
+    decimals: 2,
+    rate: 1.2816,
+    step: 1,
+  },
 };
 
 export function isCurrencyCode(value: unknown): value is CurrencyCode {
@@ -55,14 +137,42 @@ export function isCurrencyCode(value: unknown): value is CurrencyCode {
 
 // Euro-area members (Bulgaria joined on 1 Jan 2026) plus states that use the euro.
 const EURO_COUNTRIES = [
-  'AT', 'BE', 'BG', 'HR', 'CY', 'EE', 'FI', 'FR', 'DE', 'GR', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT',
-  'NL', 'PT', 'SK', 'SI', 'ES', 'AD', 'MC', 'SM', 'VA', 'ME', 'XK',
+  'AT',
+  'BE',
+  'BG',
+  'HR',
+  'CY',
+  'EE',
+  'FI',
+  'FR',
+  'DE',
+  'GR',
+  'IE',
+  'IT',
+  'LV',
+  'LT',
+  'LU',
+  'MT',
+  'NL',
+  'PT',
+  'SK',
+  'SI',
+  'ES',
+  'AD',
+  'MC',
+  'SM',
+  'VA',
+  'ME',
+  'XK',
 ];
 
 const COUNTRY_CURRENCY: Record<string, CurrencyCode> = {
   ...Object.fromEntries(EURO_COUNTRIES.map((c) => [c, 'EUR' as const])),
   US: 'USD',
-  GB: 'GBP', GG: 'GBP', JE: 'GBP', IM: 'GBP',
+  GB: 'GBP',
+  GG: 'GBP',
+  JE: 'GBP',
+  IM: 'GBP',
   CA: 'CAD',
   AU: 'AUD',
   BR: 'BRL',

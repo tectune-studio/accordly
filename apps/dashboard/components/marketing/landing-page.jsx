@@ -4,7 +4,7 @@ import { DM_Sans, Manrope } from 'next/font/google';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Pricing from './pricing';
-import {  ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 const bodyFont = DM_Sans({
   subsets: ['latin'],
