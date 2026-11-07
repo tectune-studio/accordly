@@ -23,10 +23,10 @@ export default defineConfig({
     },
   },
   webServer: {
-    command: 'npm run start -w @accordly/dashboard -- --port 3100',
+    command: 'npm run build && npm run start -w @accordly/dashboard -- --port 3100',
     url: 'http://localhost:3100',
     reuseExistingServer: false,
-    timeout: 60000,
+    timeout: 180000,
     env: { ACCORDLY_MODE: 'demo', CONSENTKIT_DATA_DIR: dataDirectory },
   },
   outputDir: 'test-results',

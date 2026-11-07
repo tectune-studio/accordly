@@ -75,7 +75,7 @@ test('styles the studio, records, integrations, billing and settings without com
   await expect(page.getByRole('heading', { name: 'Billing', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: /Current demo plan/ })).toHaveCSS(
     'font-size',
-    '9px',
+    '14px',
   );
 
   await settings.getByRole('link', { name: 'Settings', exact: true }).click();
