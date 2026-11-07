@@ -6,7 +6,7 @@ test('creates a project, saves drafts, publishes and restores versions through e
 }) => {
   const name = 'Dashboard refactor ' + Date.now();
   await page.setViewportSize({ width: 1440, height: 2400 });
-  await page.goto('/');
+  await page.goto('/dashboard');
   await page.getByRole('button', { name: 'Create project', exact: true }).click();
   await page.getByRole('textbox', { name: 'Project name', exact: true }).fill(name);
   await page.getByRole('textbox', { name: 'Website domain', exact: true }).fill('refactor.example');

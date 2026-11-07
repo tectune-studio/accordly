@@ -35,8 +35,8 @@ export function LiveOrganizationMenu({ collapsed }: { collapsed: boolean }) {
   return (
     <OrganizationSwitcher
       hidePersonal
-      afterSelectOrganizationUrl="/"
-      afterCreateOrganizationUrl="/"
+      afterSelectOrganizationUrl="/dashboard"
+      afterCreateOrganizationUrl="/dashboard"
       appearance={{
         elements: {
           rootBox: 'w-full min-w-0',

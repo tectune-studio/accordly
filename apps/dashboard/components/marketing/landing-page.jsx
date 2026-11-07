@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 const github = 'https://github.com/tectune-studio/accordly';
-const app = 'https://accordly.tectune.in';
+import Pricing from './pricing';
+import './marketing.css';
+const app = '/sign-up';
 const features = [
   [
     '01',
@@ -84,7 +86,7 @@ export default function Home() {
     setPreferences(false);
   };
   return (
-    <div ref={root}>
+    <div ref={root} className="accordly-marketing">
       <a className="skip" href="#main">
         Skip to content
       </a>
@@ -98,10 +100,16 @@ export default function Home() {
           <a href="#regions">Built for your region</a>
           <a href="#opensource">Open source</a>
           <a href="#enterprise">Enterprise</a>
+          <a href="#pricing">Pricing</a>
         </nav>
-        <a className="button small" href={app}>
-          Open workspace ↗
-        </a>
+        <div className="auth-actions">
+          <a className="text-link" href="/sign-in">
+            Log in
+          </a>
+          <a className="button primary small" href="/sign-up">
+            Sign up ↗
+          </a>
+        </div>
       </header>
       <main id="main">
         <section className="hero wrap">
@@ -329,7 +337,7 @@ export default function Home() {
                 Planning consent across brands, teams and markets? Explore the enterprise roadmap
                 for deeper identity, governance and deployment requirements.
               </p>
-              <a className="button light" href={`${app}/billing`}>
+              <a className="button light" href="#pricing">
                 Explore Enterprise ↗
               </a>
             </div>
@@ -372,10 +380,11 @@ export default function Home() {
             and team controls form the foundation. Scheduled scanning, A/B testing, analytics
             connectors, webhooks, universal consent and agency white-label tools are on the roadmap.
           </p>
-          <a className="text-link" href={`${app}/billing`}>
+          <a className="text-link" href="#pricing">
             See proposed plans and availability ↗
           </a>
         </section>
+        <Pricing />
         <section className="closing wrap" data-reveal>
           <p className="eyebrow">MAKE YOUR NEXT FIRST IMPRESSION COUNT</p>
           <h2>
@@ -397,7 +406,7 @@ export default function Home() {
         <div>
           <a href={github}>GitHub ↗</a>
           <a href={`${github}#readme`}>Documentation ↗</a>
-          <a href={app}>Workspace ↗</a>
+          <a href="/dashboard">Workspace ↗</a>
         </div>
       </footer>
     </div>

@@ -3,7 +3,7 @@ let projectId: string;
 let firstRelease: string;
 test.describe.serial('local product workflow', () => {
   test('create, edit, publish and retrieve a project', async ({ page, request }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await expect(
       page.getByRole('heading', { name: 'Good things start with trust.' }),
     ).toBeVisible();
@@ -101,7 +101,7 @@ test.describe.serial('local product workflow', () => {
     expect((await (await request.get(`/api/public/${projectId}/current`)).json()).version).toBe(
       firstRelease,
     );
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByRole('link', { name: 'Consent records', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Consent records', exact: true })).toBeVisible();
     await expect(page.getByRole('cell', { name: 'Withdraw', exact: true }).first()).toBeVisible();
@@ -145,7 +145,7 @@ test.describe.serial('local product workflow', () => {
   test('responsive navigation and simulated billing are usable', async ({ page, request }) => {
     await request.post('/api/billing', { data: { plan: 'free' } });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/');
+    await page.goto('/dashboard');
     await expect(
       page.getByRole('heading', { name: 'Good things start with trust.' }),
     ).toBeVisible();

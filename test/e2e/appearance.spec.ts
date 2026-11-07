@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.use({ viewport: { width: 1440, height: 600 } });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/dashboard');
   await expect(
     page.getByRole('heading', { name: 'Good things start with trust.', exact: true }),
   ).toBeVisible();

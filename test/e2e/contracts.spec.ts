@@ -12,7 +12,7 @@ test('v1 SDK lazily loads UI, gates DOM elements, persists secure cookies and in
   await request.post(`/api/projects/${project.id}/publish`, { data: {} });
   const config = await (await request.get(`/api/v1/config/${project.id}`)).json();
   expect(config.schemaVersion).toBe(1);
-  await page.goto('/');
+  await page.goto('/dashboard');
   let uiRequests = 0;
   page.on('request', (r) => {
     if (r.url().endsWith('/ui.js')) uiRequests++;

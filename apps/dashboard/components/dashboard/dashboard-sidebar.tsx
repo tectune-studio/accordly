@@ -67,7 +67,7 @@ export function DashboardSidebar({ live = false }: { live?: boolean }) {
       <SidebarHeader className="shrink-0 gap-0 px-4.5 pt-7.25 pb-0 group-data-[collapsible=icon]:px-3">
         <Link
           className="flex items-center px-2.25 py-0 text-6.25 font-bold tracking-[-1.2px] group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0"
-          href="/"
+          href="/dashboard"
           aria-label="Accordly home"
           onClick={() => setOpenMobile(false)}
         >

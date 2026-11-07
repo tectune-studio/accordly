@@ -1,7 +1,7 @@
 import type { View } from './types';
 
 export const viewPaths: Record<View, string> = {
-  Overview: '/',
+  Overview: '/dashboard',
   Projects: '/projects',
   'Banner Studio': '/banner-studio',
   'Consent records': '/consent-records',

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 for (const width of [390, 720, 1440, 1600]) {
   test(`preserves responsive overview and dialog styling at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto('/');
+    await page.goto('/dashboard');
     const heading = page.getByRole('heading', {
       name: 'Good things start with trust.',
       exact: true,
@@ -47,7 +47,7 @@ test('styles the studio, records, integrations, billing and settings without com
     data: { name: 'Tailwind layout ' + Date.now(), domain: 'layout.example' },
   });
   expect(created.ok()).toBe(true);
-  await page.goto('/');
+  await page.goto('/dashboard');
   const navigation = page.getByRole('navigation', { name: 'Workspace navigation' });
   await navigation.getByRole('link', { name: 'Banner Studio', exact: true }).click();
   await expect(

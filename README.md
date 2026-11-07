@@ -14,7 +14,7 @@ cp .env.example apps/dashboard/.env.local # only when no local configuration exi
 npm run dev
 ```
 
-Open the dashboard on port 3000. Create a project or use Studio website, open **Banner Studio**, publish, then open the published demo. Accept, reject, customize, or withdraw consent; return to **Consent records** to inspect and export the resulting decisions.
+Open `http://localhost:3000` for the public landing page, pricing and GitHub links. Use **Log in** or **Sign up** to enter the app; successful authentication and organization onboarding lead to `/dashboard`. In demo mode, open `/dashboard` directly. Create a project or use Studio website, open **Banner Studio**, publish, then open the published demo. Accept, reject, customize, or withdraw consent; return to **Consent records** to inspect and export the resulting decisions.
 
 ```sh
 npm test          # state, validation, gate, persistence, and edge-unit tests
@@ -32,6 +32,7 @@ Checked items are available in the local demo or source packages. Unchecked item
 
 ### Available
 
+- [x] Public homepage with GSAP animations, shared pricing catalog, GitHub links and Clerk login/signup entry points.
 - [x] Responsive Next.js dashboard with Tailwind CSS v4 and Google Sans.
 - [x] Project creation and project/domain search.
 - [x] Banner editor with text, privacy URL, accent color, expiration, purpose descriptions, and visual preview.
@@ -149,3 +150,7 @@ The core is usable without the dashboard, a subscription, or any network service
 ## License
 
 The existing repository Apache-2.0 license remains unchanged. Core packages use the same license. If proprietary hosted modules are introduced later, define that boundary and licensing explicitly before release.
+
+## Combined website deployment
+
+Deploy `apps/dashboard` on Vercel for both the public website and authenticated app. The former standalone marketing app is now `apps/dashboard/components/marketing`; no second deployment is required. Keep existing service variables. If Clerk redirect environment overrides still point at `/`, update them to `/dashboard`. See [public route details](apps/dashboard/components/marketing/README.md).

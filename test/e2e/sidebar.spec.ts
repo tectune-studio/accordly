@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 const routes = [
-  { name: 'Overview', path: '/', heading: 'Good things start with trust.' },
+  { name: 'Overview', path: '/dashboard', heading: 'Good things start with trust.' },
   { name: 'Projects', path: '/projects', heading: 'Projects' },
   { name: 'Banner Studio', path: '/banner-studio', heading: 'Banner Studio' },
   { name: 'Consent records', path: '/consent-records', heading: 'Consent records' },
@@ -36,7 +36,7 @@ test.describe('workspace route navigation', () => {
   test('links every menu to its URL and supports back and forward without resetting the sidebar', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await expectRoute(page, routes[0]);
     const sidebar = page.locator('[data-slot="sidebar"][data-state]');
     await page.getByRole('button', { name: 'Toggle Sidebar', exact: true }).click();
@@ -72,7 +72,7 @@ test.describe('desktop workspace sidebar', () => {
   test.use({ viewport: { width: 1440, height: 1000 } });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await expect(
       page.getByRole('heading', { name: 'Good things start with trust.', exact: true }),
     ).toBeVisible();
@@ -184,7 +184,7 @@ test.describe('mobile workspace sidebar', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await expect(
       page.getByRole('heading', { name: 'Good things start with trust.', exact: true }),
     ).toBeVisible();
@@ -222,7 +222,7 @@ test.describe('mobile workspace sidebar', () => {
     const drawer = page.getByRole('dialog', { name: 'Sidebar', exact: true });
     await expect(drawer).toBeVisible();
     await drawer.getByRole('link', { name: 'Accordly home', exact: true }).click();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/dashboard');
     await expect(drawer).not.toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'Good things start with trust.', exact: true }),

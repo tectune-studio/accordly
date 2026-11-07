@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           Welcome to Accordly
         </h1>
         <OrganizationSwitcher hidePersonal />
-        <CreateOrganization afterCreateOrganizationUrl="/" />
+        <CreateOrganization afterCreateOrganizationUrl="/dashboard" />
       </main>
     );
   return (
