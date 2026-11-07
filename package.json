@@ -16,7 +16,10 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "schema:generate": "npm run generate -w @accordly/schema"
+    "schema:generate": "npm run generate -w @accordly/schema",
+    "dev:marketing": "npm run dev -w @accordly/marketing",
+    "build:marketing": "npm run build -w @accordly/marketing",
+    "start:marketing": "npm run start -w @accordly/marketing"
   },
   "engines": {
     "node": ">=24"

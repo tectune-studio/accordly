@@ -44,3 +44,6 @@ playwright-report/
 test-results/
 .wrangler/
 supabase/cert/prod-ca-2021.crt
+
+# Proprietary code: keep in a separate private repository, never the public distribution.
+/enterprise/
