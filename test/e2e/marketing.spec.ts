@@ -22,6 +22,12 @@ test('public home exposes pricing, source, and local authentication links', asyn
   await pricing.getByRole('button', { name: /Annual/ }).click();
   await expect(pricing.locator('.price').nth(1)).toHaveText('$120 /yr');
   await expect(pricing.getByText(/Paid checkout is not available yet/)).toBeVisible();
+
+  // Pricing Plans
+  await expect(pricing.locator('[data-price]').nth(1)).toHaveText('$12 per month');
+  await pricing.getByRole('button', { name: /yearly/ }).click();
+  await expect(pricing.locator('[data-price]').nth(1)).toHaveText('$10 per month');
+  await expect(pricing.getByText('Billed yearly at $120').first()).toBeVisible();
 });
 
 test('landing preview works and dashboard remains separate', async ({ page }) => {

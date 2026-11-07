@@ -1,6 +1,38 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { publishTransport } from '../lib/server/publish-transport.mjs';
+import { PublishDependencyError, publishTransport } from '../lib/server/publish-transport.mjs';
+test('purge failures expose safe recovery guidance without leaking dependency responses', async () => {
+  for (const status of [401, 403, 429, 503]) {
+    const transport = publishTransport(
+      env,
+      async () => new Response('private upstream details', { status }),
+    );
+    await assert.rejects(transport.invalidate('proj_test'), (error) => {
+      assert.ok(error instanceof PublishDependencyError);
+      assert.match(error.message, new RegExp(`HTTP ${status}`));
+      assert.match(error.message, /Cache Purge permission/);
+      assert.ok(!error.message.includes('private upstream details'));
+      assert.ok(!error.message.includes(env.CLOUDFLARE_API_TOKEN));
+      return true;
+    });
+  }
+  for (const response of [
+    Response.json({ success: false }),
+    Response.json(null),
+    new Response('not JSON'),
+  ]) {
+    const transport = publishTransport(env, async () => response);
+    await assert.rejects(transport.invalidate('proj_test'), PublishDependencyError);
+  }
+  const transport = publishTransport(env, async () => {
+    throw new Error('private network details');
+  });
+  await assert.rejects(
+    transport.invalidate('proj_test'),
+    /Cloudflare cache purge could not connect or timed out/,
+  );
+});
+
 const env = {
   ACCORDLY_DELIVERY_ORIGIN: 'https://delivery.example',
   ACCORDLY_PUBLISH_SECRET: 'p'.repeat(32),

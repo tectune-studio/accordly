@@ -1,3 +1,9 @@
+// Only locally constructed messages from this error may be shown to administrators.
+export class PublishDependencyError extends Error {}
+
+const purgeHelp =
+  'Check CLOUDFLARE_ZONE_ID and ensure CLOUDFLARE_API_TOKEN has Zone → Cache Purge permission for the delivery hostname’s zone, then resume publication.';
+
 export function publishTransport(env = process.env, fetcher = fetch) {
   const origin = new URL(env.ACCORDLY_DELIVERY_ORIGIN || 'http://unconfigured');
   if (
@@ -13,16 +19,34 @@ export function publishTransport(env = process.env, fetcher = fetch) {
     !env.CLOUDFLARE_API_TOKEN
   )
     throw new Error('Cloudflare publish environment is incomplete');
-  async function post(url, token, body) {
-    const r = await fetcher(url, {
-      method: 'POST',
-      redirect: 'error',
-      signal: AbortSignal.timeout(15000),
-      headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    if (!r.ok) throw new Error('Publish dependency failed');
-    return r.json();
+  async function post(url, token, body, purge = false) {
+    const operation = purge ? 'Cloudflare cache purge' : 'Delivery worker request';
+    let r;
+    try {
+      r = await fetcher(url, {
+        method: 'POST',
+        redirect: 'error',
+        signal: AbortSignal.timeout(15000),
+        headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      throw new PublishDependencyError(
+        `${operation} could not connect or timed out. Check service availability and resume publication.`,
+      );
+    }
+    if (!r.ok) {
+      throw new PublishDependencyError(
+        `${operation} failed (HTTP ${r.status}). ${purge ? purgeHelp : 'Check the delivery worker and its publish secret, then resume publication.'}`,
+      );
+    }
+    try {
+      return await r.json();
+    } catch {
+      throw new PublishDependencyError(
+        `${operation} returned an invalid response. Check service availability and resume publication.`,
+      );
+    }
   }
   return {
     async store(config, banner) {
@@ -51,8 +75,12 @@ export function publishTransport(env = process.env, fetcher = fetch) {
             `${origin.origin}/v1/config/${projectId}`,
           ],
         },
+        true,
       );
-      if (r.success !== true) throw new Error('Cache invalidation failed');
+      if (r?.success !== true)
+        throw new PublishDependencyError(
+          `Cloudflare cache purge was not acknowledged. ${purgeHelp}`,
+        );
     },
   };
 }

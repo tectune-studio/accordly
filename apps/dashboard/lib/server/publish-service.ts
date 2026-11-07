@@ -3,7 +3,7 @@ import { withTenant, recordAudit } from './database';
 import { HttpError, type Actor } from './auth';
 import { parseConfig } from '../domain.mjs';
 import { toBannerConfig } from '../contracts.mjs';
-import { publishTransport } from './publish-transport.mjs';
+import { PublishDependencyError, publishTransport } from './publish-transport.mjs';
 import { publishStep } from './publish-step.mjs';
 
 export async function publishRelease(
@@ -152,16 +152,23 @@ export async function publishRelease(
       if (result) return result;
     }
   } catch (error) {
+    const message =
+      error instanceof PublishDependencyError || error instanceof HttpError
+        ? error.message
+        : 'Publication could not complete. Check server logs and resume this job.';
+    if (!(error instanceof PublishDependencyError) && !(error instanceof HttpError)) {
+      console.error('Publication failed', { jobId, projectId, error });
+    }
     await withTenant(actor, (db) =>
       db.query(
-        "update accordly.publish_jobs set attempts=attempts+1,last_error='Dependency or ownership check failed; retry this job' where id=$1 and phase<>'completed'",
-        [jobId],
+        "update accordly.publish_jobs set attempts=attempts+1,last_error=$2 where id=$1 and phase<>'completed'",
+        [jobId, message],
       ),
     ).catch(() => {});
     if (error instanceof HttpError) throw error;
     throw new HttpError(
       409,
-      `Publish ${jobId} is pending. Retry with the same requestId to resume.`,
+      `Publish ${jobId} is pending. ${message} Retry with the same requestId to resume.`,
     );
   }
 }

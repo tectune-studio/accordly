@@ -1,14 +1,14 @@
 export const plans = [
-  {
-    id: 'free',
-    name: 'Cloud Free',
-    monthly: 0,
-    annual: 0,
-    domains: 1,
-    muv: 2000,
-    retention: '30-day logs',
-    features: ['Hosted dashboard', 'CDN delivery', 'Hosted consent log', '1 banner template'],
-  },
+  // {
+  //   id: 'free',
+  //   name: 'Cloud Free',
+  //   monthly: 0,
+  //   annual: 0,
+  //   domains: 1,
+  //   muv: 2000,
+  //   retention: '30-day logs',
+  //   features: ['Hosted dashboard', 'CDN delivery', 'Hosted consent log', '1 banner template'],
+  // },
   {
     id: 'starter',
     name: 'Starter',
@@ -77,24 +77,24 @@ export const plans = [
       'Decreasing per-project rates',
     ],
   },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    monthly: null,
-    annual: null,
-    domains: null,
-    muv: null,
-    retention: 'Custom retention',
-    features: [
-      'SSO / SAML',
-      'SLA',
-      'EU data residency option',
-      'DPA',
-      'TCF when available',
-      'Mobile SDKs',
-      'Dedicated CSM',
-    ],
-  },
+  // {
+  //   id: 'enterprise',
+  //   name: 'Enterprise',
+  //   monthly: null,
+  //   annual: null,
+  //   domains: null,
+  //   muv: null,
+  //   retention: 'Custom retention',
+  //   features: [
+  //     'SSO / SAML',
+  //     'SLA',
+  //     'EU data residency option',
+  //     'DPA',
+  //     'TCF when available',
+  //     'Mobile SDKs',
+  //     'Dedicated CSM',
+  //   ],
+  // },
 ] as const;
 export type PlanId = (typeof plans)[number]['id'];
 export function findPlan(id: string) {

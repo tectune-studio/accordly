@@ -43,6 +43,12 @@ Apply migrations `202611040001` through `202611040004` using the existing migrat
 
 Beta verification: publish a verified test project, inspect the two immutable R2 objects and current pointer, fetch `/config/{project}/current` and `/v1/config/{project}`, then confirm a completed job and audit. Temporarily remove Cache Purge permission to check a pending `pointed` job, restore it, and resume. Retry the same request ID and verify there is one success audit. Roll back and verify the generation increases.
 
+## Troubleshooting a pending `pointed` job
+
+`pointed` means the artifacts and current pointer were written, but cache invalidation has not been committed. Check the failure message after resuming. For purge authorization failures, verify that the dashboard's `CLOUDFLARE_API_TOKEN` has **Zone → Cache Purge** for `CLOUDFLARE_ZONE_ID`, and that `ACCORDLY_DELIVERY_ORIGIN` belongs to that zone. A Wrangler deployment token is not necessarily a purge token. Update deployment secrets and restart/redeploy the dashboard if required, then use **Resume publication** for the existing job. Do not bypass invalidation or delete the job/release to force completion.
+
+HTTP 429 or 5xx and connection timeouts may be transient dependency failures; check Cloudflare availability before retrying. Domain verification alone does not grant the dashboard permission to purge Cloudflare caches.
+
 ## Operational limits
 
 Worker artifacts enforce the ownership expiry captured at publication. Renew ownership and republish before that expiry. Immediate revocation on domain challenge rotation, project deletion, or domain change requires an additional delivery-revocation workflow; until implemented, an already published R2 pointer can remain usable until its captured expiry. Keep this limitation in scope for beta testing.

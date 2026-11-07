@@ -1,84 +1,507 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { Check, ChevronDown, Users, HelpCircle, X } from 'lucide-react';
 import { plans } from '@/lib/billing/plans';
+import {
+  CURRENCIES,
+  CURRENCY_CODES,
+  DEFAULT_CURRENCY,
+  RATES_AS_OF,
+  convertFromUsd,
+  detectCurrency,
+  formatMoney,
+  storeCurrency,
+  type CurrencyCode,
+} from '@/lib/billing/currency';
+import { FEATURE_MATRIX } from '@/lib/billing/features';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
+type Plan = (typeof plans)[number];
+type Billing = 'monthly' | 'annual';
+
+const HIGHLIGHT_PLAN_ID = 'business';
+const HIGHLIGHT_LABEL = 'Most Subscribed';
+const INCREMENTAL_FEATURES = false;
+
+const PLAN_BLURBS: Record<string, string> = {
+  free: 'For trying Accordly on a single site.',
+  starter: 'For a single site getting started with consent choices.',
+  pro: 'For growing teams managing consent across more domains.',
+  business: 'For teams that need more visitors, domains and controls.',
+  agency: 'For agencies managing consent across client projects.',
+  enterprise: 'For organizations with custom governance and deployment needs.',
+};
+
+type PriceView =
+  | { kind: 'custom' }
+  | { kind: 'free' }
+  | { kind: 'paid'; label: string; current: string; strike?: string; pill?: string };
+
+function buildPrice(plan: Plan, billing: Billing, currency: CurrencyCode): PriceView {
+  const money = (amount: number) => formatMoney(amount, currency);
+
+  if (plan.id === 'agency') {
+    return { kind: 'paid', label: 'From', current: money(convertFromUsd(199, currency)) };
+  }
+
+  if ((plan.id as string) === 'free') {
+    return { kind: 'free' };
+  }
+
+  const monthlyUsd = plan.monthly;
+  const usd = plan[billing];
+
+  if (usd === null || monthlyUsd === null) return { kind: 'custom' };
+
+  if ((usd as number) === 0 || (monthlyUsd as number) === 0) return { kind: 'free' };
+
+  const monthly = convertFromUsd(monthlyUsd as number, currency);
+  if (billing === 'monthly') {
+    return { kind: 'paid', label: 'Billed monthly', current: money(monthly) };
+  }
+
+  const ratio = (usd as number) / (monthlyUsd as number);
+  const annual = Math.round(monthly * ratio);
+  const monthsFree = 12 - ratio;
+  const pill =
+    monthsFree >= 1 && Number.isInteger(monthsFree)
+      ? `${monthsFree} months free`
+      : `${Math.round((1 - ratio / 12) * 100)}% off`;
+
+  return {
+    kind: 'paid',
+    label: `Billed yearly at ${money(annual)}`,
+    current: money(annual / 12),
+    strike: money(monthly),
+    pill,
+  };
+}
+
+function CurrencyPicker({
+  value,
+  onChange,
+}: {
+  value: CurrencyCode;
+  onChange: (code: CurrencyCode) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!wrapRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) listRef.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus();
+  }, [open]);
+
+  const choose = (code: CurrencyCode) => {
+    onChange(code);
+    setOpen(false);
+    buttonRef.current?.focus();
+  };
+
+  const onListKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
+    const items = Array.from(
+      listRef.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [],
+    );
+    const index = items.indexOf(document.activeElement as HTMLElement);
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      items[Math.min(index + 1, items.length - 1)]?.focus();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      items[Math.max(index - 1, 0)]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      items[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      items[items.length - 1]?.focus();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      setOpen(false);
+      buttonRef.current?.focus();
+    } else if (event.key === 'Tab') {
+      setOpen(false);
+    }
+  };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Currency: ${CURRENCIES[value].label}`}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setOpen(true);
+          }
+        }}
+        className="inline-flex cursor-pointer items-center gap-[8px] rounded-[10px] border-0 bg-[var(--brand-primary)]/10 px-[14px] py-[8px] text-[14px] font-semibold text-[var(--brand-primary)]"
+      >
+        {value}
+        <ChevronDown
+          size={14}
+          aria-hidden="true"
+          className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {open && (
+        <ul
+          ref={listRef}
+          role="listbox"
+          aria-label="Currency"
+          onKeyDown={onListKeyDown}
+          className="absolute top-[calc(100%+6px)] right-0 z-30 max-h-[260px] w-[220px] overflow-y-auto rounded-[10px] bg-[var(--surface)] py-[6px] shadow-[0_8px_30px_rgba(0,0,0,0.16)] [@media(max-width:720px)]:right-auto [@media(max-width:720px)]:left-1/2 [@media(max-width:720px)]:-translate-x-1/2"
+        >
+          {CURRENCY_CODES.map((code) => (
+            <li
+              key={code}
+              role="option"
+              tabIndex={-1}
+              aria-selected={code === value}
+              onClick={() => choose(code)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  choose(code);
+                }
+              }}
+              className="cursor-pointer px-[16px] py-[9px] text-[14px] outline-none hover:bg-[var(--brand-primary)]/10 focus:bg-[var(--brand-primary)]/10 aria-selected:font-semibold aria-selected:text-[var(--brand-primary)]"
+            >
+              {CURRENCIES[code].label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function Pricing() {
-  const [interval, setInterval] = useState<'monthly' | 'annual'>('monthly');
+  const [billing, setBilling] = useState<Billing>('monthly');
+  const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
+  const pickedByVisitor = useRef(false);
+
+  useEffect(() => {
+    let active = true;
+    detectCurrency().then((code) => {
+      if (active && !pickedByVisitor.current) setCurrency(code);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const onCurrencyChange = (code: CurrencyCode) => {
+    pickedByVisitor.current = true;
+    setCurrency(code);
+    storeCurrency(code);
+  };
+
   return (
-    <section id="pricing" className="section wrap">
-      <div className="section-head">
-        <p className="eyebrow">YOUR CORE. YOUR CLOUD. YOUR CHOICE.</p>
-        <h2>Start small. Grow with confidence.</h2>
-        <p>
-          Self-host the open-source core without a subscription, or explore our proposed hosted
-          plans. Usage is measured in monthly unique visitors (MUV) who load your consent script.
-        </p>
-        <p>
-          Paid checkout is not available yet. Prices, limits and included capabilities below are the
-          planned offering; some features are still on the roadmap.
-        </p>
-      </div>
-      <div className="billing-switch" role="group" aria-label="Billing interval">
-        {(['monthly', 'annual'] as const).map((value) => (
-          <button
-            key={value}
-            className="button"
-            aria-pressed={interval === value}
-            onClick={() => setInterval(value)}
+    <section
+      id="pricing"
+      className="bg-[var(--surface)] text-[var(--ink)] [--brand-primary:#433bca] [--brand-hover:#38319c] [--ink:#000000] [--surface:#ffffff]"
+    >
+      <div className="mx-auto w-[calc(100%-100px)] max-w-[1320px] py-[100px] [@media(max-width:1000px)]:w-[calc(100%-48px)] [@media(max-width:720px)]:py-[65px]">
+        <div className="text-center">
+          <p className="flex items-center justify-center gap-[8px] text-[11px] font-semibold tracking-[2px] text-[var(--brand-primary)]">
+            YOUR CORE. YOUR CLOUD. YOUR CHOICE.
+          </p>
+          <h2 className="mx-auto mt-[16px] mb-[14px] max-w-[800px] font-[family-name:var(--font-marketing-heading)] text-[clamp(24px,2.6vw,30px)] leading-[1.25] font-semibold tracking-[-0.5px] text-[var(--ink)]">
+            Start small. Grow with confidence.
+          </h2>
+          <p className="mx-auto max-w-[620px] text-[14px] leading-[1.7] text-[var(--ink)]/70">
+            Self-host the open-source core without a subscription, or explore our proposed hosted
+            plans. Usage is measured in monthly unique visitors (MUV) who load your consent script.
+          </p>
+          <p className="mx-auto mt-[8px] max-w-[620px] text-[14px] leading-[1.7] text-[var(--ink)]/70">
+            Paid checkout is not available yet. Prices, limits and included capabilities below are
+            the planned offering; some features are still on the roadmap.
+          </p>
+        </div>
+
+        <div className="relative mt-[40px] flex flex-col items-center gap-[16px]">
+          <div
+            role="group"
+            aria-label="Billing interval"
+            className="inline-flex rounded-[8px] bg-[var(--ink)]/[0.06] p-[3px]"
           >
-            {value === 'monthly' ? 'Monthly' : 'Annual — 2 months free'}
-          </button>
-        ))}
-      </div>
-      <div className="pricing-grid">
-        {plans.map((plan) => {
-          const price = plan[interval];
-          return (
-            <article key={plan.id} className="pricing-card">
-              <p className="eyebrow">
-                {plan.id === 'free' ? 'HOSTED FOUNDATION' : 'PROPOSED PLAN'}
-              </p>
-              <h3>{plan.name}</h3>
-              <p className="price">
-                {plan.id === 'agency'
-                  ? 'From $199'
-                  : price === null
-                    ? 'Custom'
-                    : `$${price.toLocaleString('en-US')}`}
-                {(price !== null || plan.id === 'agency') && (
-                  <small> /{plan.id === 'agency' || interval === 'monthly' ? 'mo' : 'yr'}</small>
+            {(['monthly', 'annual'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={billing === value}
+                onClick={() => setBilling(value)}
+                className="cursor-pointer rounded-[6px] border-0 bg-transparent px-[12px] py-[6px] text-[14px] font-medium text-[var(--brand-primary)] aria-pressed:bg-[var(--surface)] aria-pressed:shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
+              >
+                {value === 'monthly' ? 'Billed monthly' : 'Billed yearly (2 months free)'}
+              </button>
+            ))}
+          </div>
+          <div className="[@media(min-width:721px)]:absolute [@media(min-width:721px)]:top-0 [@media(min-width:721px)]:right-0">
+            <CurrencyPicker value={currency} onChange={onCurrencyChange} />
+          </div>
+        </div>
+
+        <div className="mt-[56px] grid grid-cols-[repeat(auto-fill,minmax(min(100%,255px),1fr))] gap-x-[24px]">
+          {plans.map((plan, index) => {
+            const highlighted = plan.id === HIGHLIGHT_PLAN_ID;
+            const price = buildPrice(plan, billing, currency);
+            const blurb = PLAN_BLURBS[plan.id];
+            const divider = highlighted
+              ? 'border-[var(--brand-primary)]'
+              : 'border-[var(--ink)]/10';
+            return (
+              <article
+                key={plan.id}
+                className={`relative row-span-3 mb-[24px] grid grid-rows-subgrid rounded-[20px] border bg-[var(--surface)] ${
+                  highlighted ? 'border-[var(--brand-primary)]' : 'border-[var(--ink)]/10'
+                }`}
+              >
+                {highlighted && (
+                  <p
+                    data-highlight-bar
+                    className="absolute -top-[12px] left-1/2 z-10 -translate-x-1/2 rounded-[6px] bg-[var(--brand-primary)] px-[10px] py-[2px] text-[12px] font-medium whitespace-nowrap text-white"
+                  >
+                    {HIGHLIGHT_LABEL}
+                  </p>
                 )}
-              </p>
-              {plan.id === 'agency' && <p>Plus per-project rates. Annual terms by quote.</p>}
-              <ul>
-                <li>
-                  {plan.domains === null
-                    ? 'Custom domain limits'
-                    : `${plan.domains} ${plan.domains === 1 ? 'domain' : 'domains'}`}
-                </li>
-                <li>
-                  {plan.muv === null
-                    ? 'Custom visitor allowance'
-                    : `${plan.muv.toLocaleString('en-US')} MUV`}
-                </li>
-                <li>{plan.retention}</li>
-                {plan.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
-                ))}
-              </ul>
-              <a className="button primary" href="/sign-up">
-                {plan.id === 'free' ? 'Create your workspace' : 'Sign up to explore'} ↗
-              </a>
-            </article>
-          );
-        })}
+
+                <div className="px-[14px] pt-[26px]">
+                  <h3 className="text-[28px] leading-[1.2] font-semibold tracking-[-0.5px] text-[var(--brand-primary)]">
+                    {plan.name}
+                  </h3>
+                  {blurb && <p className="mt-[14px] text-[12px] leading-[20px]">{blurb}</p>}
+                </div>
+
+                <div className="flex flex-col px-[14px] pt-[32px] pb-[22px]">
+                  <div>
+                    <p className="h-[16px] text-[12px] leading-[16px]">
+                      {price.kind === 'paid' ? price.label : ''}
+                    </p>
+                    {price.kind === 'paid' && price.strike && (
+                      <p className="mt-[4px] flex items-center gap-[6px]">
+                        <span className="relative text-[14px] text-[var(--ink)]/60">
+                          {price.strike}
+                          <span
+                            aria-hidden="true"
+                            className="absolute top-1/2 left-0 h-[1.5px] w-[110%] -translate-y-1/2 -rotate-12 bg-current"
+                          ></span>
+                        </span>
+                        <span className="rounded-[6px] bg-[var(--brand-primary)]/10 px-[8px] py-[2px] text-[11px] font-medium text-[var(--brand-primary)]">
+                          {price.pill}
+                        </span>
+                      </p>
+                    )}
+                    {price.kind === 'paid' && (
+                      <p data-price className="mt-[2px] flex items-baseline gap-[6px]">
+                        <span className="text-[30px] leading-[1.2] font-semibold">
+                          {price.current}
+                        </span>{' '}
+                        <span className="text-[14px]">per month</span>
+                      </p>
+                    )}
+                    {price.kind === 'free' && (
+                      <p data-price className="mt-[2px] text-[30px] leading-[1.2] font-semibold">
+                        Free
+                      </p>
+                    )}
+                    {price.kind === 'custom' && (
+                      <p data-price className="mt-[2px] text-[30px] leading-[1.2] font-semibold">
+                        Custom price
+                      </p>
+                    )}
+                    {plan.id === 'agency' && (
+                      <p className="mt-[6px] text-[11px] leading-[16px] text-[var(--ink)]/60">
+                        Plus per-project rates. Annual terms by quote.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="mt-auto pt-[18px]">
+                    <p className="mb-[14px] flex items-center gap-[8px] text-[11px] text-[var(--ink)]/70">
+                      <Users size={14} aria-hidden="true" className="shrink-0" />
+                      {plan.muv === null
+                        ? 'Custom visitor allowance'
+                        : `${plan.muv.toLocaleString('en-US')} MUV per month`}
+                    </p>
+                    <a
+                      className="flex w-full items-center justify-center rounded-[10px] bg-[var(--ink)] px-[12px] py-[9px] text-[13px] font-bold text-white! no-underline transition-colors duration-200 hover:bg-[var(--brand-hover)]"
+                      href="/sign-up"
+                    >
+                      Sign up to explore
+                    </a>
+                  </div>
+                </div>
+
+                <div className={`border-t px-[14px] py-[20px] ${divider}`}>
+                  <p className="text-[13px] font-bold">
+                    {INCREMENTAL_FEATURES && index > 0
+                      ? `Everything in ${plans[index - 1].name}, plus:`
+                      : `Features included in ${plan.name}:`}
+                  </p>
+                  <ul className="mt-[14px] flex flex-col gap-[14px]">
+                    {[
+                      plan.domains === null
+                        ? 'Custom domain limits'
+                        : `${plan.domains} ${plan.domains === 1 ? 'domain' : 'domains'}`,
+                      plan.retention,
+                      ...plan.features,
+                    ].map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-[10px] text-[12px] leading-[16px]"
+                      >
+                        <Check
+                          size={14}
+                          strokeWidth={2.4}
+                          aria-hidden="true"
+                          className="mt-[1px] shrink-0 text-[var(--brand-primary)]"
+                        />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        {/* Feature Comparison Table */}
+        <div className="mt-[100px]">
+          <h3 className="mb-[40px] text-center text-[32px] font-semibold text-[var(--ink)]">
+            All features
+          </h3>
+          <TooltipProvider delayDuration={200}>
+            <div className="overflow-x-auto pb-[20px]">
+              <table className="w-full min-w-[900px] border-collapse text-[14px]">
+                <thead>
+                  <tr>
+                    <th className="w-[280px] border-b border-[var(--ink)]/10 px-[16px] py-[24px] text-left text-[16px] font-semibold text-[var(--ink)] align-bottom">
+                      Key Features
+                    </th>
+                    {plans.map((plan) => {
+                      const price = buildPrice(plan, billing, currency);
+                      return (
+                        <th
+                          key={plan.id}
+                          className="border-b border-l border-[var(--ink)]/10 px-[16px] py-[24px] align-bottom text-center"
+                        >
+                          <div className="mb-[8px] text-[16px] font-semibold text-[var(--ink)]">
+                            {plan.name}
+                          </div>
+                          {(plan.id as string) === 'free' ? (
+                            <div className="mx-auto w-fit rounded-full bg-[var(--brand-primary)] px-[12px] py-[4px] text-[12px] font-medium text-white">
+                              Current plan
+                            </div>
+                          ) : (
+                            <div className="text-[12px] font-normal text-[var(--ink)]/60">
+                              {price.kind === 'paid'
+                                ? `From ${price.current} per month`
+                                : price.kind === 'custom'
+                                  ? 'Custom price'
+                                  : 'Free'}
+                            </div>
+                          )}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {FEATURE_MATRIX.map((row) => (
+                    <tr
+                      key={row.feature}
+                      className="group border-b border-[var(--ink)]/10 hover:bg-[var(--ink)]/[0.02]"
+                    >
+                      <td className="px-[16px] py-[20px] align-middle">
+                        <div className="flex items-center gap-[8px] font-medium text-[var(--ink)]/80">
+                          {row.feature}
+
+                          {/* Tooltip Added Here */}
+                          {row.description && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center justify-center outline-none"
+                                >
+                                  <HelpCircle
+                                    size={14}
+                                    className="shrink-0 cursor-help text-[var(--ink)]/40 transition-colors hover:text-[var(--ink)]/80"
+                                  />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="right"
+                                align="center"
+                                className="max-w-[260px] text-sm"
+                              >
+                                {row.description}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+
+                        </div>
+                      </td>
+                      {plans.map((plan, j) => {
+                        const val = row.values[j];
+                        return (
+                          <td
+                            key={plan.id}
+                            className="border-l border-[var(--ink)]/10 px-[16px] py-[20px] text-center align-middle text-[var(--ink)]/70"
+                          >
+                            {typeof val === 'boolean' ? (
+                              val ? (
+                                <Check size={18} strokeWidth={2.5} className="mx-auto text-[#00b27b]" />
+                              ) : (
+                                <X size={18} strokeWidth={2.5} className="mx-auto text-[var(--ink)]/20" />
+                              )
+                            ) : (
+                              val || (
+                                <X size={18} strokeWidth={2.5} className="mx-auto text-[var(--ink)]/20" />
+                              )
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </TooltipProvider>
+        </div>
+
+        <p className="mx-auto mt-[40px] max-w-[930px] text-center text-[11px] leading-[1.8] text-[var(--ink)]/70">
+          Annual Starter, Pro and Business pricing includes two months free. Enterprise availability
+          and commitments require a separate agreement. See the feature roadmap above for what is
+          still planned.
+          {currency !== 'USD' &&
+            ` Prices in ${CURRENCIES[currency].label} are indicative conversions from USD (rates as of ${RATES_AS_OF}) and may change before checkout opens.`}
+        </p>
       </div>
-      <p className="legal">
-        Annual Starter, Pro and Business pricing includes two months free. Enterprise availability
-        and commitments require a separate agreement. See the feature roadmap above for what is
-        still planned.
-      </p>
     </section>
   );
 }
