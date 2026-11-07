@@ -13,9 +13,10 @@ export function uuidv7() {
 export function adaptConfig(c, country, language) {
   if (c.schemaVersion !== 1) throw new Error('Unsupported schemaVersion');
   const text = c.texts[language] || c.texts[c.defaultLanguage];
-  const rule =
-    c.regionRules.find((r) => r.countries.includes(country)) ||
-    c.regionRules.find((r) => r.countries.includes('*'));
+  const rule = !country
+    ? { mode: 'opt-in', respectGpc: true, gpcCategories: ['analytics', 'marketing', 'functional'] }
+    : c.regionRules.find((r) => r.countries.includes(country)) ||
+      c.regionRules.find((r) => r.countries.includes('*'));
   return {
     projectId: c.projectId,
     version: c.configHash,
@@ -32,7 +33,7 @@ export function adaptConfig(c, country, language) {
     })),
     respectGpc: rule?.respectGpc,
     gpcCategories: rule?.gpcCategories,
-    mode: rule?.mode,
+    mode: rule?.mode || 'opt-in',
     repromptOnConfigChange: c.behavior.repromptOnConfigChange,
     text,
     theme: c.theme,

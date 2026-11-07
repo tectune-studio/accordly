@@ -16,14 +16,25 @@
   });
   if (!tag?.dataset.config) return;
   const source = new URL(tag.src);
-  Promise.all([
-    import(new URL('consent.js', source).href),
-    fetch(tag.dataset.config).then((r) => {
-      if (!r.ok) throw new Error('Consent configuration unavailable');
-      return r.json();
-    }),
-  ])
-    .then(async ([sdk, config]) => {
+  import(new URL('consent.js', source).href)
+    .then(async (sdk) => {
+      let storage;
+      try {
+        storage = window.localStorage;
+      } catch {
+        storage = null;
+      }
+      const config = await sdk.loadHostedConfig(tag.dataset.config, { storage });
+      let country = tag.dataset.country;
+      if (!country) {
+        try {
+          const response = await fetch(new URL('/cdn-cgi/trace', tag.dataset.config), {
+            credentials: 'omit',
+            signal: AbortSignal.timeout(2000),
+          });
+          if (response.ok) country = (await response.text()).match(/^loc=([A-Z]{2})$/m)?.[1];
+        } catch {} // Missing or blocked detection uses strict opt-in.
+      }
       if (document.readyState === 'loading')
         await new Promise((resolve) =>
           document.addEventListener('DOMContentLoaded', resolve, { once: true }),
@@ -31,7 +42,7 @@
       const manager = sdk
         .createConsentManager({
           config,
-          country: tag.dataset.country,
+          country,
           language: document.documentElement.lang || config.defaultLanguage,
           onError: (error) => console.error('ConsentKit', error),
           onEvent: (event) =>

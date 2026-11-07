@@ -320,3 +320,72 @@ export function createConsentManager({
   };
   return manager;
 }
+
+/** Browser configuration cache. Storage and network failures never grant consent. */
+export async function loadHostedConfig(
+  url,
+  {
+    storage,
+    cookie = globalThis.document?.cookie || '',
+    fetcher = globalThis.fetch,
+    now = Date.now(),
+    ttl = 3600000,
+    onError = () => {},
+  } = {},
+) {
+  if (storage === undefined) {
+    try {
+      storage = globalThis.localStorage;
+    } catch {
+      storage = null;
+    }
+  }
+  const key = `accordly:config:${url}`;
+  const validate = (config) => {
+    validateConfig(config.schemaVersion === 1 ? adaptConfig(config) : config);
+    return config;
+  };
+  let cached;
+  try {
+    cached = JSON.parse(storage?.getItem(key) || 'null');
+    if (!Number.isFinite(cached?.savedAt) || cached.savedAt > now) cached = null;
+    if (cached) validate(cached.config);
+  } catch {
+    cached = null;
+  }
+  const refresh = async () => {
+    const response = await fetcher(url, { credentials: 'omit', signal: AbortSignal.timeout(5000) });
+    if (!response.ok) throw new Error('Consent configuration unavailable');
+    const config = validate(await response.json());
+    try {
+      storage?.setItem(key, JSON.stringify({ savedAt: now, config }));
+    } catch {}
+    return config;
+  };
+  if (!cached) return refresh();
+  const config = cached.config;
+  const adapted = config.schemaVersion === 1 ? adaptConfig(config) : config;
+  let receipt;
+  try {
+    const prefix = encodeURIComponent(`accordly:${config.projectId}`) + '=';
+    receipt = JSON.parse(
+      decodeURIComponent(
+        cookie
+          .split(';')
+          .map((v) => v.trim())
+          .find((v) => v.startsWith(prefix))
+          ?.slice(prefix.length) || 'null',
+      ),
+    );
+  } catch {}
+  if (now - cached.savedAt < ttl) {
+    if (!isValidStoredReceipt(adapted, receipt, now)) void refresh().catch(onError);
+    return config;
+  }
+  try {
+    return await refresh();
+  } catch (error) {
+    onError(error);
+    return config;
+  }
+}
