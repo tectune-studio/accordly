@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useDashboardContext } from '@/components/dashboard/dashboard-context';
 import { request } from '@/lib/dashboard/api';
-import { plans, findPlan } from '@/lib/billing/plans';
+import { PLANS, findPlan } from '@/lib/billing/pricing';
 
 export default function BillingPage() {
   const { state, busy, action } = useDashboardContext();
@@ -43,9 +43,9 @@ export default function BillingPage() {
         ))}
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {plans.map((plan) => {
+        {PLANS.map((plan) => {
           const selected = current?.id === plan.id;
-          const quoted = plan.id === 'agency' || plan.id === 'enterprise';
+          const quoted = plan.id === 'agency';
           const price = plan[interval];
           return (
             <article
@@ -91,7 +91,7 @@ export default function BillingPage() {
                 <li>{plan.retention}</li>
               </ul>
               <p className="text-xs font-semibold text-muted-foreground">
-                {plan.id === 'free'
+                {plan.id === 'starter'
                   ? 'Adds to the open-source core'
                   : quoted
                     ? 'Proposed capabilities'
@@ -132,12 +132,7 @@ export default function BillingPage() {
           MUV. Upgrade prompts are planned at 80% of your allowance. Paid-plan banner delivery
           remains active above the allowance.
         </p>
-        <p>
-          <strong>Cloud Free:</strong> 2,000 MUV per month, with no overage billing. The planned
-          hard cap suspends hosted delivery, publishing and record collection when reached. Account
-          access and billing remain available to upgrade. Already-cached scripts may continue
-          running on customer websites.
-        </p>
+
         <p>
           <strong>Availability:</strong> proposed packaging includes features still being built:
           scheduled scans, A/B testing, analytics connectors, webhooks, universal consent,

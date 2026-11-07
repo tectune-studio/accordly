@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@/components/dashboard/status-badge';
-import { cn } from '@/lib/utils';
+import { cn } from 'cn';
 import { InfoIcon } from 'lucide-react';
 
 export default function IntegrationsPage() {

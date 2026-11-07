@@ -8,7 +8,7 @@ Every live administrative request verifies the signed Clerk session and fetches 
 
 The supplied Supabase public URL/key identify the project; private data is accessed through a server-only PostgreSQL adapter, not the browser publishable key. `ACCORDLY_DATABASE_URL` must use the non-owner `accordly_app` role. The adapter rejects superuser/BYPASSRLS credentials. Tenant/user/role context is derived from verified Clerk membership and set with transaction-local PostgreSQL settings. Neither Supabase anon/authenticated roles nor PUBLIC receive private table access.
 
-1. Configure `SUPABASE_DB_URL` securely with the migration-owner connection string.
+1. Configure `DATABASE_URL` securely with the migration-owner connection string.
 2. Run `node scripts/database/migrate.mjs`. Migrations use an advisory transaction lock and checksum ledger, compatible with transaction pooling.
 3. Run `node scripts/database/provision.mjs` once to generate restricted application and maintenance passwords. This rotates those role passwords and saves URLs only in ignored `apps/dashboard/.env.local`; distribute them securely to deployment secrets before starting live services.
 4. Configure `CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `ACCORDLY_DATABASE_URL`, and `ACCORDLY_MODE=live` in the application. Keep migration and maintenance credentials out of the application runtime.

@@ -1,9 +1,18 @@
+import type { Metadata } from 'next';
 import LandingPage from '@/components/marketing/landing-page';
-export const metadata = {
-  title: 'Accordly - Own Your Privacy',
-  description:
-    'Open-source consent infrastructure and a hosted workspace for EU and US businesses. Explore features, pricing and the source on GitHub.',
-};
+import { landingMetadata, landingStructuredData, serializeJsonLd } from '@/lib/landing/seo';
+
+export const metadata: Metadata = landingMetadata;
+
 export default function Page() {
-  return <LandingPage />;
+  return (
+    <>
+      <script
+        id="landing-structured-data"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(landingStructuredData) }}
+      />
+      <LandingPage />
+    </>
+  );
 }

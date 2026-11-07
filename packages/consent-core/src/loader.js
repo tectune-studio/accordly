@@ -39,14 +39,24 @@
         await new Promise((resolve) =>
           document.addEventListener('DOMContentLoaded', resolve, { once: true }),
         );
+      const transport = tag.dataset.ingest
+        ? (await import(new URL('transport.js', source).href)).createEventTransport({
+            endpoint: tag.dataset.ingest,
+            projectId: config.projectId,
+            storage,
+            onError: (error) => console.error('Accordly receipt delivery', error),
+          })
+        : null;
       const manager = sdk
         .createConsentManager({
           config,
           country,
           language: document.documentElement.lang || config.defaultLanguage,
           onError: (error) => console.error('ConsentKit', error),
-          onEvent: (event) =>
-            window.dispatchEvent(new CustomEvent('accordly:decision', { detail: event })),
+          onEvent: (event) => {
+            window.dispatchEvent(new CustomEvent('accordly:decision', { detail: event }));
+            transport?.enqueue(event);
+          },
         })
         .initialize();
       window.ConsentKit = manager;

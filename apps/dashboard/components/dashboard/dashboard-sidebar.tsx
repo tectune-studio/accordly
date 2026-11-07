@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import BrandLogo from '@/components/brand-logo';
-import { cn } from '@/lib/utils';
+import { cn } from 'cn';
 import type { View } from '@/lib/dashboard/types';
 import { useDashboardContext } from './dashboard-context';
 import { navigation, viewPaths } from '@/lib/dashboard/navigation';

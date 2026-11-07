@@ -1,41 +1,36 @@
 'use client';
-
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Check, ChevronDown, Users, HelpCircle, X } from 'lucide-react';
-import { plans } from '@/lib/billing/plans';
 import {
   CURRENCIES,
   CURRENCY_CODES,
   DEFAULT_CURRENCY,
-  RATES_AS_OF,
   convertFromUsd,
   detectCurrency,
   formatMoney,
   storeCurrency,
   type CurrencyCode,
 } from '@/lib/billing/currency';
-import { FEATURE_MATRIX } from '@/lib/billing/features';
+import { FEATURE_MATRIX, PLANS } from '@/lib/billing/pricing';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-type Plan = (typeof plans)[number];
+type Plan = (typeof PLANS)[number];
 type Billing = 'monthly' | 'annual';
-
+// Highlight Plan
 const HIGHLIGHT_PLAN_ID = 'business';
+// Highlight Label
 const HIGHLIGHT_LABEL = 'Most Subscribed';
 const INCREMENTAL_FEATURES = false;
 
 const PLAN_BLURBS: Record<string, string> = {
-  free: 'For trying Accordly on a single site.',
   starter: 'For a single site getting started with consent choices.',
   pro: 'For growing teams managing consent across more domains.',
   business: 'For teams that need more visitors, domains and controls.',
   agency: 'For agencies managing consent across client projects.',
-  enterprise: 'For organizations with custom governance and deployment needs.',
 };
 
 type PriceView =
   | { kind: 'custom' }
-  | { kind: 'free' }
   | { kind: 'paid'; label: string; current: string; strike?: string; pill?: string };
 
 function buildPrice(plan: Plan, billing: Billing, currency: CurrencyCode): PriceView {
@@ -45,16 +40,10 @@ function buildPrice(plan: Plan, billing: Billing, currency: CurrencyCode): Price
     return { kind: 'paid', label: 'From', current: money(convertFromUsd(199, currency)) };
   }
 
-  if ((plan.id as string) === 'free') {
-    return { kind: 'free' };
-  }
-
   const monthlyUsd = plan.monthly;
   const usd = plan[billing];
 
   if (usd === null || monthlyUsd === null) return { kind: 'custom' };
-
-  if ((usd as number) === 0 || (monthlyUsd as number) === 0) return { kind: 'free' };
 
   const monthly = convertFromUsd(monthlyUsd as number, currency);
   if (billing === 'monthly') {
@@ -150,7 +139,7 @@ function CurrencyPicker({
             setOpen(true);
           }
         }}
-        className="inline-flex cursor-pointer items-center gap-[8px] rounded-[10px] border-0 bg-[var(--brand-primary)]/10 px-[14px] py-[8px] text-[14px] font-semibold text-[var(--brand-primary)]"
+        className="inline-flex cursor-pointer items-center gap-1 rounded-full border-0  bg-gray-50 px-3 py-2 sm:text-[14px] text-xs font-semibold text-black"
       >
         {value}
         <ChevronDown
@@ -165,7 +154,7 @@ function CurrencyPicker({
           role="listbox"
           aria-label="Currency"
           onKeyDown={onListKeyDown}
-          className="absolute top-[calc(100%+6px)] right-0 z-30 max-h-[260px] w-[220px] overflow-y-auto rounded-[10px] bg-[var(--surface)] py-[6px] shadow-[0_8px_30px_rgba(0,0,0,0.16)] [@media(max-width:720px)]:right-auto [@media(max-width:720px)]:left-1/2 [@media(max-width:720px)]:-translate-x-1/2"
+          className="absolute top-[calc(100%+6px)] sm:right-0 -right-40 z-30 max-h-[260px] w-[220px] overflow-y-auto rounded-[10px] bg-[var(--surface)] py-[6px] shadow-[0_8px_30px_rgba(0,0,0,0.16)] "
         >
           {CURRENCY_CODES.map((code) => (
             <li
@@ -191,7 +180,7 @@ function CurrencyPicker({
   );
 }
 
-export default function Pricing() {
+export function Pricing() {
   const [billing, setBilling] = useState<Billing>('monthly');
   const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
   const pickedByVisitor = useRef(false);
@@ -219,47 +208,42 @@ export default function Pricing() {
     >
       <div className="mx-auto w-[calc(100%-100px)] max-w-[1320px] py-[100px] [@media(max-width:1000px)]:w-[calc(100%-48px)] [@media(max-width:720px)]:py-[65px]">
         <div className="text-center">
-          <p className="flex items-center justify-center gap-[8px] text-[11px] font-semibold tracking-[2px] text-[var(--brand-primary)]">
-            YOUR CORE. YOUR CLOUD. YOUR CHOICE.
-          </p>
-          <h2 className="mx-auto mt-[16px] mb-[14px] max-w-[800px] font-[family-name:var(--font-marketing-heading)] text-[clamp(24px,2.6vw,30px)] leading-[1.25] font-semibold tracking-[-0.5px] text-[var(--ink)]">
-            Start small. Grow with confidence.
+          <h2 className="my-[25px] font-[family-name:var(--font-marketing-heading)] text-[clamp(30px,4vw,57px)] leading-[1.12] font-medium tracking-[-2.5px] text-[var(--ink)] [@media(max-width:720px)]:tracking-[-1.5px]">
+            A foundation today.
+            <br />
+            More possibilities ahead.
           </h2>
           <p className="mx-auto max-w-[620px] text-[14px] leading-[1.7] text-[var(--ink)]/70">
-            Self-host the open-source core without a subscription, or explore our proposed hosted
-            plans. Usage is measured in monthly unique visitors (MUV) who load your consent script.
-          </p>
-          <p className="mx-auto mt-[8px] max-w-[620px] text-[14px] leading-[1.7] text-[var(--ink)]/70">
-            Paid checkout is not available yet. Prices, limits and included capabilities below are
-            the planned offering; some features are still on the roadmap.
+            Usage is measured in <strong>monthly unique visitors (MUV)</strong> who visit your app.
           </p>
         </div>
 
-        <div className="relative mt-[40px] flex flex-col items-center gap-[16px]">
+        <div className="relative mt-[40px] flex flex-col items-center w-full gap-2">
           <div
             role="group"
             aria-label="Billing interval"
-            className="inline-flex rounded-[8px] bg-[var(--ink)]/[0.06] p-[3px]"
+            className="flex sm:relative items-center justify-between sm:justify-center w-full gap-x-5 "
           >
-            {(['monthly', 'annual'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={billing === value}
-                onClick={() => setBilling(value)}
-                className="cursor-pointer rounded-[6px] border-0 bg-transparent px-[12px] py-[6px] text-[14px] font-medium text-[var(--brand-primary)] aria-pressed:bg-[var(--surface)] aria-pressed:shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
-              >
-                {value === 'monthly' ? 'Billed monthly' : 'Billed yearly (2 months free)'}
-              </button>
-            ))}
-          </div>
-          <div className="[@media(min-width:721px)]:absolute [@media(min-width:721px)]:top-0 [@media(min-width:721px)]:right-0">
-            <CurrencyPicker value={currency} onChange={onCurrencyChange} />
+            <div className="sm:right-0 sm:absolute block ">
+              <CurrencyPicker value={currency} onChange={onCurrencyChange} />
+            </div>
+            <div className="bg-[var(--ink)]/[0.06]  rounded-full p-[3px]">
+              {(['monthly', 'annual'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={billing === value}
+                  onClick={() => setBilling(value)}
+                  className="cursor-pointer rounded-full border-0 bg-transparent px-[12px] py-[6px] text-[14px] font-medium text-[var(--brand-primary)] aria-pressed:bg-[var(--surface)] aria-pressed:shadow-[0_1px_3px_rgba(0,0,0,0.12)]"
+                >
+                  {value === 'monthly' ? 'Monthly' : 'Yearly'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-
         <div className="mt-[56px] grid grid-cols-[repeat(auto-fill,minmax(min(100%,255px),1fr))] gap-x-[24px]">
-          {plans.map((plan, index) => {
+          {PLANS.map((plan, index) => {
             const highlighted = plan.id === HIGHLIGHT_PLAN_ID;
             const price = buildPrice(plan, billing, currency);
             const blurb = PLAN_BLURBS[plan.id];
@@ -269,8 +253,10 @@ export default function Pricing() {
             return (
               <article
                 key={plan.id}
-                className={`relative row-span-3 mb-[24px] grid grid-rows-subgrid rounded-[20px] border bg-[var(--surface)] ${
-                  highlighted ? 'border-[var(--brand-primary)]' : 'border-[var(--ink)]/10'
+                className={`relative row-span-3 mb-[24px] grid grid-rows-subgrid rounded-[20px]   ${
+                  highlighted
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5 border-3'
+                    : ' border border-[var(--ink)]/10 bg-[var(--surface)]'
                 }`}
               >
                 {highlighted && (
@@ -316,11 +302,6 @@ export default function Pricing() {
                         <span className="text-[14px]">per month</span>
                       </p>
                     )}
-                    {price.kind === 'free' && (
-                      <p data-price className="mt-[2px] text-[30px] leading-[1.2] font-semibold">
-                        Free
-                      </p>
-                    )}
                     {price.kind === 'custom' && (
                       <p data-price className="mt-[2px] text-[30px] leading-[1.2] font-semibold">
                         Custom price
@@ -341,10 +322,10 @@ export default function Pricing() {
                         : `${plan.muv.toLocaleString('en-US')} MUV per month`}
                     </p>
                     <a
-                      className="flex w-full items-center justify-center rounded-[10px] bg-[var(--ink)] px-[12px] py-[9px] text-[13px] font-bold text-white! no-underline transition-colors duration-200 hover:bg-[var(--brand-hover)]"
-                      href="/sign-up"
+                      className="flex w-full items-center justify-center rounded-full bg-[var(--ink)] px-[12px] py-[9px] text-[13px] font-bold text-white! no-underline transition-colors duration-200 hover:bg-[var(--brand-hover)]"
+                      href="#features" // TODO: Add onboarding page. Instead of direct signup, redirect to onboarding.
                     >
-                      Sign up to explore
+                      Explore Features
                     </a>
                   </div>
                 </div>
@@ -352,7 +333,7 @@ export default function Pricing() {
                 <div className={`border-t px-[14px] py-[20px] ${divider}`}>
                   <p className="text-[13px] font-bold">
                     {INCREMENTAL_FEATURES && index > 0
-                      ? `Everything in ${plans[index - 1].name}, plus:`
+                      ? `Everything in ${PLANS[index - 1].name}, plus:`
                       : `Features included in ${plan.name}:`}
                   </p>
                   <ul className="mt-[14px] flex flex-col gap-[14px]">
@@ -384,7 +365,7 @@ export default function Pricing() {
         </div>
 
         {/* Feature Comparison Table */}
-        <div className="mt-[100px]">
+        <div className="mt-[100px]" id="features">
           <h3 className="mb-[40px] text-center text-[32px] font-semibold text-[var(--ink)]">
             All features
           </h3>
@@ -396,8 +377,7 @@ export default function Pricing() {
                     <th className="w-[280px] border-b border-[var(--ink)]/10 px-[16px] py-[24px] text-left text-[16px] font-semibold text-[var(--ink)] align-bottom">
                       Key Features
                     </th>
-                    {plans.map((plan) => {
-                      const price = buildPrice(plan, billing, currency);
+                    {PLANS.map((plan) => {
                       return (
                         <th
                           key={plan.id}
@@ -406,24 +386,12 @@ export default function Pricing() {
                           <div className="mb-[8px] text-[16px] font-semibold text-[var(--ink)]">
                             {plan.name}
                           </div>
-                          {(plan.id as string) === 'free' ? (
-                            <div className="mx-auto w-fit rounded-full bg-[var(--brand-primary)] px-[12px] py-[4px] text-[12px] font-medium text-white">
-                              Current plan
-                            </div>
-                          ) : (
-                            <div className="text-[12px] font-normal text-[var(--ink)]/60">
-                              {price.kind === 'paid'
-                                ? `From ${price.current} per month`
-                                : price.kind === 'custom'
-                                  ? 'Custom price'
-                                  : 'Free'}
-                            </div>
-                          )}
                         </th>
                       );
                     })}
                   </tr>
                 </thead>
+
                 <tbody>
                   {FEATURE_MATRIX.map((row) => (
                     <tr
@@ -433,7 +401,6 @@ export default function Pricing() {
                       <td className="px-[16px] py-[20px] align-middle">
                         <div className="flex items-center gap-[8px] font-medium text-[var(--ink)]/80">
                           {row.feature}
-
                           {/* Tooltip Added Here */}
                           {row.description && (
                             <Tooltip>
@@ -459,7 +426,7 @@ export default function Pricing() {
                           )}
                         </div>
                       </td>
-                      {plans.map((plan, j) => {
+                      {PLANS.map((plan, j) => {
                         const val = row.values[j];
                         return (
                           <td
@@ -499,14 +466,6 @@ export default function Pricing() {
             </div>
           </TooltipProvider>
         </div>
-
-        <p className="mx-auto mt-[40px] max-w-[930px] text-center text-[11px] leading-[1.8] text-[var(--ink)]/70">
-          Annual Starter, Pro and Business pricing includes two months free. Enterprise availability
-          and commitments require a separate agreement. See the feature roadmap above for what is
-          still planned.
-          {currency !== 'USD' &&
-            ` Prices in ${CURRENCIES[currency].label} are indicative conversions from USD (rates as of ${RATES_AS_OF}) and may change before checkout opens.`}
-        </p>
       </div>
     </section>
   );

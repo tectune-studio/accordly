@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { cn } from 'cn';
 
 // The supplied wordmarks have transparent padding; crop with CSS without changing the assets.
 export default function BrandLogo({

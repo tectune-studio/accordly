@@ -2,6 +2,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import type { Metadata } from 'next';
 import './globals.css';
 import { Google_Sans } from 'next/font/google';
+import { cn } from 'cn';
 
 const googleSans = Google_Sans({
   subsets: ['latin'],
@@ -21,9 +22,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={googleSans.variable}>
+    <html lang="en" className={cn(googleSans.variable, 'scroll-smooth')}>
       <body
-        className={`${googleSans.className} bg-canvas font-sans text-sm leading-normal text-ink`}
+        className={`${googleSans.className} bg-white font-sans text-sm leading-normal text-ink`}
       >
         {process.env.ACCORDLY_MODE === 'demo' ? (
           children

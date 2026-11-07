@@ -44,7 +44,7 @@ export async function migrate(client) {
 }
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   loadConfig();
-  const client = new Client(connectConfig(process.env.SUPABASE_DB_URL));
+  const client = new Client(connectConfig(process.env.DATABASE_URL));
   try {
     await client.connect();
     await migrate(client);

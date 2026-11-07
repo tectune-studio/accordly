@@ -1,6 +1,7 @@
 {
   "$schema": "https://unpkg.com/wrangler/config-schema.json",
   "name": "accordly-delivery",
+  "compatibility_flags": ["nodejs_compat"],
   "workers_dev": false,
   "routes": [{ "pattern": "consent.tectune.in", "custom_domain": true }],
   "main": "src/worker.ts",
@@ -8,6 +9,12 @@
   "r2_buckets": [
     { "binding": "CONFIGS", "bucket_name": "consent-config-tectune" },
     { "binding": "RECEIPTS", "bucket_name": "consent-receipts-tectune" },
+  ],
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "f7229a57a0f74f15b713d0c40a6943e6",
+    },
   ],
   "queues": {
     "producers": [{ "binding": "CONSENT_QUEUE", "queue": "accordly-decisions" }],

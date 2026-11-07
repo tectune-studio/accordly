@@ -31,6 +31,7 @@
   --color-brand: var(--brand-primary);
   --color-line: var(--line);
   --color-surface: var(--surface);
+  --color-dull-white: var(--dull-white);
   --color-canvas: var(--canvas);
   --font-sans: var(--font-google-sans), Arial, Helvetica, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -49,6 +50,7 @@
   --brand-primary: #433bca;
   --brand-hover: #38319c;
   --surface: #ffffff;
+  --dull-white: #f4f4f4;
   --ink: #000000;
   --green: var(--brand-primary);
   --on-brand: var(--surface);
@@ -91,6 +93,15 @@
   --sidebar-border: var(--line);
   --sidebar-ring: var(--ring);
 }
+/* Scope the bento palette so the landing page's legacy tokens stay untouched. */
+.marketing-feature-bento {
+  --bjork-surface: var(--surface);
+  --bjork-ink: var(--foreground);
+  --bjork-muted: color-mix(in srgb, var(--bjork-ink) 62%, var(--surface));
+  --bjork-border: color-mix(in srgb, var(--brand-primary) 14%, var(--surface));
+  --bjork-accent: var(--brand-primary);
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: none;
@@ -101,7 +112,7 @@
   height: 0;
 }
 body {
-  background: var(--canvas);
+  /*background: var(--canvas);*/
   color: var(--ink);
 }
 

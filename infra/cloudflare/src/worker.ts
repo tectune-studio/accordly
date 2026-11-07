@@ -1,3 +1,4 @@
+import { ingest, writeEvent } from './ingest.mjs';
 import { validateEvent } from '../../../apps/dashboard/lib/contracts.mjs';
 import { validateReceipt } from '../../../apps/dashboard/lib/domain.mjs';
 import { activatePointer, authorized, publishObject } from './publish.mjs';
@@ -11,6 +12,7 @@ interface Bucket {
   put(key: string, value: string, options?: unknown): Promise<unknown>;
 }
 interface Env {
+  HYPERDRIVE?: { connectionString: string };
   PUBLISH_SECRET?: string;
   CONFIGS: Bucket;
   RECEIPTS: Bucket;
@@ -18,7 +20,15 @@ interface Env {
   INGEST_LIMITER: { limit(options: { key: string }): Promise<{ success: boolean }> };
 }
 interface Message {
-  body: { projectId: string; receiptId?: string; eventId?: string; receivedAt: string };
+  body: {
+    kind?: string;
+    origin?: string;
+    event?: unknown;
+    projectId: string;
+    receiptId?: string;
+    eventId?: string;
+    receivedAt: string;
+  };
   ack(): void;
   retry(): void;
 }
@@ -72,6 +82,8 @@ async function getConfig(env: Env, project: string, version: string, banner = fa
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    if (url.pathname === '/ingest') return ingest(request, env);
+    if (url.pathname === '/health' && request.method === 'GET') return response({ ok: true });
     const segments = url.pathname.split('/').filter(Boolean);
     try {
       if (segments[0] === 'internal') {
@@ -173,6 +185,11 @@ export default {
     for (const message of batch.messages) {
       try {
         const r = message.body;
+        if (r.kind === 'accordly-ingest-v1') {
+          await writeEvent(env, r);
+          message.ack();
+          continue;
+        }
         // Deterministic object key makes redelivery idempotent. R2 bucket lifecycle handles retention.
         await env.RECEIPTS.put(
           `receipts/${r.projectId}/${r.eventId || r.receiptId}.json`,

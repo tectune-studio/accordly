@@ -24,9 +24,6 @@ export type CurrencyCode = (typeof CURRENCY_CODES)[number];
 
 export const DEFAULT_CURRENCY: CurrencyCode = 'USD';
 
-/** Date the `rate` values below were taken (ECB reference rates, converted to USD base). */
-export const RATES_AS_OF = '2026-11-06';
-
 type CurrencyConfig = {
   code: CurrencyCode;
   /** Shown in the dropdown, e.g. "Euro (€)". */
